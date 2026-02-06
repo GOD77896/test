@@ -1095,4 +1095,258 @@
             // 重新排序（因为名称改变不影响排序，但保留以防万一）
             history.sort((a, b) => b.score - a.score);
             
-            // 
+            // 保存更新后的历史记录
+            localStorage.setItem('snakeGameHistory', JSON.stringify(history));
+        }
+
+        // 加载排行榜
+        function loadLeaderboard() {
+            // 获取历史记录
+            let history = JSON.parse(localStorage.getItem('snakeGameHistory') || '[]');
+            
+            // 按分数排序（从高到低）
+            history.sort((a, b) => b.score - a.score);
+            
+            // 只取前10名
+            const top10 = history.slice(0, 10);
+            
+            // 清空排行榜表格
+            leaderboardBody.innerHTML = '';
+            
+            if (top10.length === 0) {
+                // 如果没有记录，显示空状态
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="4" style="text-align: center; color: #a0a0c0; padding: 30px;">
+                        暂无游戏记录，快来成为第一名吧！
+                    </td>
+                `;
+                leaderboardBody.appendChild(row);
+                return;
+            }
+            
+            // 填充排行榜
+            top10.forEach((record, index) => {
+                const row = document.createElement('tr');
+                
+                // 设置排名样式
+                let rankClass = '';
+                if (index === 0) rankClass = 'style="color: #ffd700;"'; // 金牌
+                else if (index === 1) rankClass = 'style="color: #c0c0c0;"'; // 银牌
+                else if (index === 2) rankClass = 'style="color: #cd7f32;"'; // 铜牌
+                
+                row.innerHTML = `
+                    <td class="rank" ${rankClass}>${index + 1}</td>
+                    <td class="player">${record.player}</td>
+                    <td class="score">${record.score}</td>
+                    <td class="date">${record.date}</td>
+                `;
+                leaderboardBody.appendChild(row);
+            });
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (!gameRunning) {
+                // 检查是否需要输入玩家名称
+                if (isFirstGame && !playerNameInput.value.trim()) {
+                    alert('请输入玩家名称后再开始游戏！');
+                    playerNameInput.focus();
+                    return;
+                }
+                
+                gameRunning = true;
+                gamePaused = false;
+                startBtn.textContent = '游戏中...';
+                
+                // 如果蛇已经死亡，重新初始化游戏
+                if (snake.length === 0) {
+                    initGame();
+                }
+                
+                // 开始游戏循环
+                gameInterval = setInterval(updateGame, gameSpeed);
+                drawGame();
+            }
+        }
+
+        // 暂停/继续游戏
+        function togglePause() {
+            if (!gameRunning) return;
+            
+            if (gamePaused) {
+                // 继续游戏
+                gamePaused = false;
+                pauseBtn.textContent = '暂停游戏';
+                gameInterval = setInterval(updateGame, gameSpeed);
+            } else {
+                // 暂停游戏
+                gamePaused = true;
+                pauseBtn.textContent = '继续游戏';
+                clearInterval(gameInterval);
+            }
+        }
+
+        // 重新开始游戏
+        function restartGame() {
+            clearInterval(gameInterval);
+            gameRunning = false;
+            gamePaused = false;
+            startBtn.textContent = '开始游戏';
+            pauseBtn.textContent = '暂停游戏';
+            initGame();
+            drawGame();
+        }
+
+        // 键盘控制 - 修复WASD输入问题
+        function handleKeyDown(e) {
+            // 如果输入框获得焦点，禁用游戏控制
+            if (isInputFocused) {
+                // 允许ESC键取消输入
+                if (e.keyCode === 27) { // ESC键
+                    if (nameChangeContainer.classList.contains('show')) {
+                        cancelNameChange();
+                    }
+                }
+                // 允许Enter键保存名称
+                else if (e.keyCode === 13 && nameChangeContainer.classList.contains('show')) { // Enter键
+                    saveNewPlayerName();
+                }
+                // 其他键正常输入
+                return;
+            }
+            
+            // 防止方向键滚动页面
+            if ([37, 38, 39, 40, 65, 87, 68, 83].includes(e.keyCode)) {
+                e.preventDefault();
+            }
+            
+            // 根据按键设置方向
+            switch(e.keyCode) {
+                case 38: // 上箭头
+                case 87: // W键
+                    if (direction !== 'down') nextDirection = 'up';
+                    break;
+                case 40: // 下箭头
+                case 83: // S键
+                    if (direction !== 'up') nextDirection = 'down';
+                    break;
+                case 37: // 左箭头
+                case 65: // A键
+                    if (direction !== 'right') nextDirection = 'left';
+                    break;
+                case 39: // 右箭头
+                case 68: // D键
+                    if (direction !== 'left') nextDirection = 'right';
+                    break;
+                case 32: // 空格键 - 暂停/继续
+                    togglePause();
+                    break;
+                case 13: // 回车键 - 开始游戏
+                    if (!gameRunning) startGame();
+                    break;
+                case 82: // R键 - 重新开始
+                    restartGame();
+                    break;
+            }
+        }
+
+        // 取消名称修改
+        function cancelNameChange() {
+            nameChangeContainer.classList.remove('show');
+            gameOverScreen.style.display = 'flex';
+        }
+
+        // 移动设备控制
+        function setupMobileControls() {
+            upBtn.addEventListener('click', () => {
+                if (direction !== 'down') nextDirection = 'up';
+            });
+            
+            downBtn.addEventListener('click', () => {
+                if (direction !== 'up') nextDirection = 'down';
+            });
+            
+            leftBtn.addEventListener('click', () => {
+                if (direction !== 'right') nextDirection = 'left';
+            });
+            
+            rightBtn.addEventListener('click', () => {
+                if (direction !== 'left') nextDirection = 'right';
+            });
+        }
+
+        // 切换排行榜显示
+        toggleLeaderboardBtn.addEventListener('click', function() {
+            if (leaderboardContainer.classList.contains('show')) {
+                leaderboardContainer.classList.remove('show');
+                this.textContent = '展开';
+            } else {
+                leaderboardContainer.classList.add('show');
+                this.textContent = '收起';
+            }
+        });
+
+        // 事件监听
+        startBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', togglePause);
+        restartBtn.addEventListener('click', restartGame);
+        restartBtn2.addEventListener('click', restartGame);
+        changeNameBtn.addEventListener('click', changePlayerName);
+        saveNameBtn.addEventListener('click', saveNewPlayerName);
+        cancelNameBtn.addEventListener('click', cancelNameChange);
+
+        // 输入框焦点事件处理 - 修复WASD输入问题
+        playerNameInput.addEventListener('focus', function() {
+            isInputFocused = true;
+        });
+        
+        playerNameInput.addEventListener('blur', function() {
+            isInputFocused = false;
+        });
+        
+        newPlayerNameInput.addEventListener('focus', function() {
+            isInputFocused = true;
+        });
+        
+        newPlayerNameInput.addEventListener('blur', function() {
+            isInputFocused = false;
+        });
+
+        // 初始化游戏
+        initGame();
+        drawGame();
+        
+        // 设置移动控制
+        setupMobileControls();
+        
+        // 监听键盘事件
+        document.addEventListener('keydown', handleKeyDown);
+        
+        // 显示最高分
+        highScoreElement.textContent = highScore;
+        
+        // 如果有保存的玩家名称，填充到输入框
+        if (playerName) {
+            playerNameInput.value = playerName;
+        }
+        
+        // 添加触摸事件支持，防止移动端拖动
+        document.addEventListener('touchmove', function(e) {
+            if (e.target.classList.contains('dir-btn')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // 点击页面其他地方收起排行榜的触摸设备优化
+        document.addEventListener('touchstart', function(e) {
+            if (!leaderboardContainer.contains(e.target) && 
+                !toggleLeaderboardBtn.contains(e.target) &&
+                leaderboardContainer.classList.contains('show')) {
+                leaderboardContainer.classList.remove('show');
+                toggleLeaderboardBtn.textContent = '展开';
+            }
+        });
+    </script>
+</body>
+</html>
