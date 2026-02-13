@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>贪食蛇2.0 - 移动优化版</title>
+    <title>贪食蛇4.0 - 排行榜优化版</title>
     <style>
+        /* 样式保持不变，仅修改标题 */
         * {
             margin: 0;
             padding: 0;
@@ -251,6 +252,65 @@
             border-color: #4dffea;
         }
         
+        /* 名称修改区域 */
+        .name-change-container {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .name-change-container.show {
+            display: block;
+        }
+        
+        .name-change-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .name-change-input input {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 2px solid rgba(77, 255, 234, 0.3);
+            background-color: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .name-change-input input:focus {
+            outline: none;
+            border-color: #4dffea;
+        }
+        
+        .name-change-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .name-change-buttons .btn {
+            padding: 8px 16px;
+            font-size: 1rem;
+            min-width: 100px;
+            max-width: 120px;
+        }
+        
+        #save-name-btn {
+            background: linear-gradient(90deg, #00b09b, #96c93d);
+            color: white;
+        }
+        
+        #cancel-name-btn {
+            background: linear-gradient(90deg, #6c757d, #495057);
+            color: white;
+        }
+        
         /* 排行榜样式 */
         .leaderboard-container {
             width: 100%;
@@ -364,8 +424,23 @@
         
         .game-over p {
             font-size: 1.5rem;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
             color: #ff9a00;
+        }
+        
+        .game-over-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .game-over-buttons .btn {
+            min-width: 140px;
+        }
+        
+        #change-name-btn {
+            background: linear-gradient(90deg, #8a2be2, #4a00e0);
+            color: white;
         }
         
         .instructions {
@@ -428,6 +503,26 @@
             .info-value {
                 font-size: 1.8rem;
             }
+            
+            .game-over-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .name-change-input {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .name-change-input input {
+                width: 100%;
+            }
+            
+            .name-change-buttons {
+                justify-content: center;
+                width: 100%;
+            }
         }
         
         @media (max-width: 480px) {
@@ -466,8 +561,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>贪食蛇2.0</h1>
-        <p class="subtitle">专为移动设备优化 - 支持触控操作与排行榜</p>
+        <h1>贪食蛇4.0</h1>
+        <p class="subtitle">排行榜优化版 - 每个玩家只显示最高分</p>
     </div>
     
     <div class="game-container">
@@ -508,7 +603,21 @@
             <div class="game-over" id="game-over">
                 <h2>游戏结束!</h2>
                 <p>得分: <span id="final-score">0</span></p>
-                <button class="btn" id="restart-btn-2">重新开始</button>
+                <div class="game-over-buttons">
+                    <button class="btn" id="restart-btn-2">重新开始</button>
+                    <button class="btn" id="change-name-btn">修改名称</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="name-change-container" id="name-change-container">
+            <div class="name-change-input">
+                <label for="new-player-name">新玩家名称:</label>
+                <input type="text" id="new-player-name" placeholder="请输入新的游戏名称" maxlength="15">
+            </div>
+            <div class="name-change-buttons">
+                <button class="btn" id="cancel-name-btn">取消</button>
+                <button class="btn" id="save-name-btn">保存名称</button>
             </div>
         </div>
         
@@ -520,7 +629,7 @@
         
         <div class="leaderboard-container" id="leaderboard-container">
             <div class="leaderboard-header">
-                <h3>🏆 排行榜 (前十名)</h3>
+                <h3>🏆 排行榜 (前十名 - 每人仅显示最高分)</h3>
                 <button id="toggle-leaderboard">收起</button>
             </div>
             <table class="leaderboard-table">
@@ -528,8 +637,8 @@
                     <tr>
                         <th class="rank">排名</th>
                         <th class="player">玩家</th>
-                        <th class="score">分数</th>
-                        <th class="date">日期</th>
+                        <th class="score">最高分</th>
+                        <th class="date">达成日期</th>
                     </tr>
                 </thead>
                 <tbody id="leaderboard-body">
@@ -544,7 +653,8 @@
             <p>每吃到一个食物 <span style="color:#ff9a00">●</span> 获得10分，每得100分升一级</p>
             <p>等级越高，蛇移动速度越快</p>
             <p>避免撞到墙壁或自己的身体</p>
-            <p>首次游戏请输入玩家名称，您的成绩将进入排行榜</p>
+            <p>首次游戏请输入玩家名称，游戏结束后可以修改名称</p>
+            <p><strong>新功能：</strong>排行榜每人只显示最高分，改名后会合并历史记录</p>
         </div>
     </div>
 
@@ -567,6 +677,9 @@
         let gamePaused = false;
         let playerName = localStorage.getItem('snakePlayerName') || '';
         let isFirstGame = !localStorage.getItem('snakePlayerName');
+        let isInputFocused = false; // 追踪输入框焦点状态
+        let lastGameTimestamp = null; // 记录最近一次游戏的时间戳
+        let gameRecordSaved = false; // 新增：防止重复保存游戏记录
 
         // 游戏元素尺寸
         const gridSize = 15;
@@ -588,6 +701,13 @@
         const leaderboardContainer = document.getElementById('leaderboard-container');
         const leaderboardBody = document.getElementById('leaderboard-body');
         const toggleLeaderboardBtn = document.getElementById('toggle-leaderboard');
+        
+        // 名称修改相关元素
+        const changeNameBtn = document.getElementById('change-name-btn');
+        const nameChangeContainer = document.getElementById('name-change-container');
+        const newPlayerNameInput = document.getElementById('new-player-name');
+        const saveNameBtn = document.getElementById('save-name-btn');
+        const cancelNameBtn = document.getElementById('cancel-name-btn');
 
         // 移动控制按钮
         const upBtn = document.getElementById('up-btn');
@@ -595,7 +715,7 @@
         const leftBtn = document.getElementById('left-btn');
         const rightBtn = document.getElementById('right-btn');
 
-        // 初始化游戏
+        // ============== 修复1：移除initGame中的排行榜刷新 ==============
         function initGame() {
             // 初始化蛇
             snake = [
@@ -613,6 +733,9 @@
             level = 1;
             gameSpeed = 120;
             
+            // 重置游戏记录保存状态
+            gameRecordSaved = false;
+            
             // 更新显示
             scoreElement.textContent = score;
             levelElement.textContent = level;
@@ -621,8 +744,9 @@
             // 生成第一个食物
             generateFood();
             
-            // 隐藏游戏结束画面
+            // 隐藏游戏结束画面和名称修改界面
             gameOverScreen.style.display = 'none';
+            nameChangeContainer.classList.remove('show');
             
             // 显示玩家名称输入（如果是第一次游戏）
             if (isFirstGame) {
@@ -631,8 +755,8 @@
                 playerNameContainer.classList.remove('show');
             }
             
-            // 加载排行榜
-            loadLeaderboard();
+            // ===== 移除：排行榜不在初始化时刷新 =====
+            // loadLeaderboard();  // 删除这行
             
             // 显示排行榜
             leaderboardContainer.classList.add('show');
@@ -654,7 +778,7 @@
             }
         }
 
-        // 绘制游戏元素
+        // 绘制游戏元素（保持不变）
         function drawGame() {
             // 清除画布
             ctx.fillStyle = '#0d1b2a';
@@ -854,10 +978,13 @@
             drawGame();
         }
 
-        // 游戏结束
+        // ============== 修复1：添加防重复保存机制 ==============
         function gameOver() {
             gameRunning = false;
             clearInterval(gameInterval);
+            
+            // 记录游戏结束时间
+            lastGameTimestamp = Date.now();
             
             // 显示游戏结束画面
             finalScoreElement.textContent = score;
@@ -866,13 +993,19 @@
             // 更新按钮文本
             startBtn.textContent = '开始游戏';
             
-            // 保存游戏记录到历史
-            saveGameRecord();
+            // ===== 修复：防止重复保存 =====
+            if (!gameRecordSaved) {
+                // 保存游戏记录到历史
+                saveGameRecord();
+                gameRecordSaved = true;
+            }
             
-            // 重新加载排行榜
+            // 重新加载排行榜（仅当有新记录时）
             loadLeaderboard();
         }
 
+        // ============== 修复2&3：排行榜去重 + 改名记录迁移 ==============
+        
         // 保存游戏记录
         function saveGameRecord() {
             // 获取玩家名称
@@ -905,224 +1038,47 @@
                 timestamp: now.getTime()
             });
             
-            // 按分数排序（从高到低）
-            history.sort((a, b) => b.score - a.score);
-            
-            // 只保留前50条记录（避免本地存储过大）
-            if (history.length > 50) {
-                history = history.slice(0, 50);
-            }
-            
-            // 保存到本地存储
+            // 保存到本地存储（暂不排序和去重，保留所有记录用于计算最高分）
             localStorage.setItem('snakeGameHistory', JSON.stringify(history));
         }
 
-        // 加载排行榜
+        // ============== 修复3：改名后迁移所有历史记录 ==============
+        function updateAllPlayerRecords(oldName, newName) {
+            if (oldName === newName) return;
+            
+            // 获取历史记录
+            let history = JSON.parse(localStorage.getItem('snakeGameHistory') || '[]');
+            
+            // 将所有旧名字的记录更新为新名字
+            let updated = false;
+            for (let i = 0; i < history.length; i++) {
+                if (history[i].player === oldName) {
+                    history[i].player = newName;
+                    updated = true;
+                }
+            }
+            
+            if (updated) {
+                // 保存更新后的历史记录
+                localStorage.setItem('snakeGameHistory', JSON.stringify(history));
+            }
+        }
+
+        // ============== 修复2：排行榜去重（每人只显示最高分）==============
         function loadLeaderboard() {
             // 获取历史记录
             let history = JSON.parse(localStorage.getItem('snakeGameHistory') || '[]');
             
-            // 按分数排序（从高到低）
-            history.sort((a, b) => b.score - a.score);
+            // 创建玩家最高分映射
+            const playerBestScores = new Map();
             
-            // 只取前10名
-            const top10 = history.slice(0, 10);
-            
-            // 清空排行榜表格
-            leaderboardBody.innerHTML = '';
-            
-            if (top10.length === 0) {
-                // 如果没有记录，显示空状态
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td colspan="4" style="text-align: center; color: #a0a0c0; padding: 30px;">
-                        暂无游戏记录，快来成为第一名吧！
-                    </td>
-                `;
-                leaderboardBody.appendChild(row);
-                return;
-            }
-            
-            // 填充排行榜
-            top10.forEach((record, index) => {
-                const row = document.createElement('tr');
+            // 遍历所有记录，找出每个玩家的最高分
+            history.forEach(record => {
+                const playerName = record.player;
+                const currentBest = playerBestScores.get(playerName);
                 
-                // 设置排名样式
-                let rankClass = '';
-                if (index === 0) rankClass = 'style="color: #ffd700;"'; // 金牌
-                else if (index === 1) rankClass = 'style="color: #c0c0c0;"'; // 银牌
-                else if (index === 2) rankClass = 'style="color: #cd7f32;"'; // 铜牌
-                
-                row.innerHTML = `
-                    <td class="rank" ${rankClass}>${index + 1}</td>
-                    <td class="player">${record.player}</td>
-                    <td class="score">${record.score}</td>
-                    <td class="date">${record.date}</td>
-                `;
-                leaderboardBody.appendChild(row);
-            });
-        }
-
-        // 开始游戏
-        function startGame() {
-            if (!gameRunning) {
-                // 检查是否需要输入玩家名称
-                if (isFirstGame && !playerNameInput.value.trim()) {
-                    alert('请输入玩家名称后再开始游戏！');
-                    playerNameInput.focus();
-                    return;
-                }
-                
-                gameRunning = true;
-                gamePaused = false;
-                startBtn.textContent = '游戏中...';
-                
-                // 如果蛇已经死亡，重新初始化游戏
-                if (snake.length === 0) {
-                    initGame();
-                }
-                
-                // 开始游戏循环
-                gameInterval = setInterval(updateGame, gameSpeed);
-                drawGame();
-            }
-        }
-
-        // 暂停/继续游戏
-        function togglePause() {
-            if (!gameRunning) return;
-            
-            if (gamePaused) {
-                // 继续游戏
-                gamePaused = false;
-                pauseBtn.textContent = '暂停游戏';
-                gameInterval = setInterval(updateGame, gameSpeed);
-            } else {
-                // 暂停游戏
-                gamePaused = true;
-                pauseBtn.textContent = '继续游戏';
-                clearInterval(gameInterval);
-            }
-        }
-
-        // 重新开始游戏
-        function restartGame() {
-            clearInterval(gameInterval);
-            gameRunning = false;
-            gamePaused = false;
-            startBtn.textContent = '开始游戏';
-            pauseBtn.textContent = '暂停游戏';
-            initGame();
-            drawGame();
-        }
-
-        // 键盘控制
-        function handleKeyDown(e) {
-            // 防止方向键滚动页面
-            if ([37, 38, 39, 40, 65, 87, 68, 83].includes(e.keyCode)) {
-                e.preventDefault();
-            }
-            
-            // 根据按键设置方向
-            switch(e.keyCode) {
-                case 38: // 上箭头
-                case 87: // W键
-                    if (direction !== 'down') nextDirection = 'up';
-                    break;
-                case 40: // 下箭头
-                case 83: // S键
-                    if (direction !== 'up') nextDirection = 'down';
-                    break;
-                case 37: // 左箭头
-                case 65: // A键
-                    if (direction !== 'right') nextDirection = 'left';
-                    break;
-                case 39: // 右箭头
-                case 68: // D键
-                    if (direction !== 'left') nextDirection = 'right';
-                    break;
-                case 32: // 空格键 - 暂停/继续
-                    togglePause();
-                    break;
-                case 13: // 回车键 - 开始游戏
-                    if (!gameRunning) startGame();
-                    break;
-                case 82: // R键 - 重新开始
-                    restartGame();
-                    break;
-            }
-        }
-
-        // 移动设备控制
-        function setupMobileControls() {
-            upBtn.addEventListener('click', () => {
-                if (direction !== 'down') nextDirection = 'up';
-            });
-            
-            downBtn.addEventListener('click', () => {
-                if (direction !== 'up') nextDirection = 'down';
-            });
-            
-            leftBtn.addEventListener('click', () => {
-                if (direction !== 'right') nextDirection = 'left';
-            });
-            
-            rightBtn.addEventListener('click', () => {
-                if (direction !== 'left') nextDirection = 'right';
-            });
-        }
-
-        // 切换排行榜显示
-        toggleLeaderboardBtn.addEventListener('click', function() {
-            if (leaderboardContainer.classList.contains('show')) {
-                leaderboardContainer.classList.remove('show');
-                this.textContent = '展开';
-            } else {
-                leaderboardContainer.classList.add('show');
-                this.textContent = '收起';
-            }
-        });
-
-        // 事件监听
-        startBtn.addEventListener('click', startGame);
-        pauseBtn.addEventListener('click', togglePause);
-        restartBtn.addEventListener('click', restartGame);
-        restartBtn2.addEventListener('click', restartGame);
-
-        // 初始化游戏
-        initGame();
-        drawGame();
-        
-        // 设置移动控制
-        setupMobileControls();
-        
-        // 监听键盘事件
-        document.addEventListener('keydown', handleKeyDown);
-        
-        // 显示最高分
-        highScoreElement.textContent = highScore;
-        
-        // 如果有保存的玩家名称，填充到输入框
-        if (playerName) {
-            playerNameInput.value = playerName;
-        }
-        
-        // 添加触摸事件支持，防止移动端拖动
-        document.addEventListener('touchmove', function(e) {
-            if (e.target.classList.contains('dir-btn')) {
-                e.preventDefault();
-            }
-        }, { passive: false });
-        
-        // 点击页面其他地方收起排行榜的触摸设备优化
-        document.addEventListener('touchstart', function(e) {
-            if (!leaderboardContainer.contains(e.target) && 
-                !toggleLeaderboardBtn.contains(e.target) &&
-                leaderboardContainer.classList.contains('show')) {
-                leaderboardContainer.classList.remove('show');
-                toggleLeaderboardBtn.textContent = '展开';
-            }
-        });
-    </script>
-</body>
-</html>
+                if (!currentBest || record.score > currentBest.score) {
+                    // 更新最高分记录
+                    playerBestScores.set(playerName, {
+                        player: playerName,
+                        score: record.score,
