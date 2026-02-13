@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>贪食蛇4.0 - 排行榜优化版</title>
     <style>
-        /* 样式保持不变，仅修改标题 */
+        /* 样式与您提供的代码完全相同，为节省篇幅此处省略，实际使用时请保留完整样式 */
         * {
             margin: 0;
             padding: 0;
@@ -102,7 +102,6 @@
             margin-bottom: 20px;
         }
         
-        /* 新的方向键样式 - 方形自适应 */
         .directional-controls {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -211,7 +210,6 @@
             transform: translateY(1px);
         }
         
-        /* 玩家名称输入 */
         .player-name-container {
             margin-bottom: 20px;
             width: 100%;
@@ -252,7 +250,6 @@
             border-color: #4dffea;
         }
         
-        /* 名称修改区域 */
         .name-change-container {
             display: none;
             margin-top: 20px;
@@ -311,7 +308,6 @@
             color: white;
         }
         
-        /* 排行榜样式 */
         .leaderboard-container {
             width: 100%;
             margin-top: 20px;
@@ -591,7 +587,6 @@
         <div class="game-area">
             <canvas id="game-canvas" width="600" height="450"></canvas>
             
-            <!-- 方形方向键 -->
             <div class="directional-controls">
                 <button class="dir-btn up-btn" id="up-btn">↑</button>
                 <button class="dir-btn left-btn" id="left-btn">←</button>
@@ -668,7 +663,7 @@
         let food = {};
         let direction = 'right';
         let nextDirection = 'right';
-        let gameSpeed = 120; // 初始速度（毫秒）
+        let gameSpeed = 120;
         let gameInterval;
         let score = 0;
         let highScore = localStorage.getItem('snakeHighScore') || 0;
@@ -677,9 +672,9 @@
         let gamePaused = false;
         let playerName = localStorage.getItem('snakePlayerName') || '';
         let isFirstGame = !localStorage.getItem('snakePlayerName');
-        let isInputFocused = false; // 追踪输入框焦点状态
-        let lastGameTimestamp = null; // 记录最近一次游戏的时间戳
-        let gameRecordSaved = false; // 新增：防止重复保存游戏记录
+        let isInputFocused = false;
+        let lastGameTimestamp = null;
+        let gameRecordSaved = false;
 
         // 游戏元素尺寸
         const gridSize = 15;
@@ -755,22 +750,17 @@
                 playerNameContainer.classList.remove('show');
             }
             
-            // ===== 移除：排行榜不在初始化时刷新 =====
-            // loadLeaderboard();  // 删除这行
-            
             // 显示排行榜
             leaderboardContainer.classList.add('show');
         }
 
         // 生成食物
         function generateFood() {
-            // 随机生成食物位置
             food = {
                 x: Math.floor(Math.random() * gridWidth),
                 y: Math.floor(Math.random() * gridHeight)
             };
             
-            // 确保食物不会生成在蛇身上
             for (let segment of snake) {
                 if (segment.x === food.x && segment.y === food.y) {
                     return generateFood();
@@ -778,17 +768,14 @@
             }
         }
 
-        // 绘制游戏元素（保持不变）
+        // 绘制游戏元素
         function drawGame() {
-            // 清除画布
             ctx.fillStyle = '#0d1b2a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // 绘制网格线
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
             ctx.lineWidth = 1;
             
-            // 垂直线
             for (let x = 0; x <= canvas.width; x += gridSize) {
                 ctx.beginPath();
                 ctx.moveTo(x, 0);
@@ -796,7 +783,6 @@
                 ctx.stroke();
             }
             
-            // 水平线
             for (let y = 0; y <= canvas.height; y += gridSize) {
                 ctx.beginPath();
                 ctx.moveTo(0, y);
@@ -804,18 +790,14 @@
                 ctx.stroke();
             }
             
-            // 绘制蛇
             snake.forEach((segment, index) => {
-                // 蛇头用不同颜色
                 if (index === 0) {
-                    ctx.fillStyle = '#4dffea'; // 蛇头颜色
+                    ctx.fillStyle = '#4dffea';
                 } else {
-                    // 蛇身渐变颜色
                     const colorValue = 150 + Math.floor(105 * (index / snake.length));
                     ctx.fillStyle = `rgb(50, ${colorValue}, 100)`;
                 }
                 
-                // 绘制圆角矩形作为蛇身
                 drawRoundedRect(
                     segment.x * gridSize, 
                     segment.y * gridSize, 
@@ -824,11 +806,9 @@
                     3
                 );
                 
-                // 绘制蛇眼睛（只在头部）
                 if (index === 0) {
                     ctx.fillStyle = '#000';
                     
-                    // 根据方向绘制眼睛位置
                     let eyeOffsetX = 0;
                     let eyeOffsetY = 0;
                     
@@ -846,7 +826,6 @@
                         eyeOffsetY = 10;
                     }
                     
-                    // 绘制两只眼睛
                     ctx.beginPath();
                     ctx.arc(
                         segment.x * gridSize + eyeOffsetX,
@@ -865,7 +844,6 @@
                 }
             });
             
-            // 绘制食物
             ctx.fillStyle = '#ff9a00';
             ctx.beginPath();
             ctx.arc(
@@ -875,7 +853,6 @@
             );
             ctx.fill();
             
-            // 添加食物光晕效果
             ctx.shadowColor = '#ff9a00';
             ctx.shadowBlur = 10;
             ctx.fill();
@@ -900,10 +877,8 @@
 
         // 更新游戏状态
         function updateGame() {
-            // 更新蛇的方向
             direction = nextDirection;
             
-            // 根据方向计算新的蛇头位置
             const head = {x: snake[0].x, y: snake[0].y};
             
             switch(direction) {
@@ -921,13 +896,11 @@
                     break;
             }
             
-            // 检查是否撞墙
             if (head.x < 0 || head.x >= gridWidth || head.y < 0 || head.y >= gridHeight) {
                 gameOver();
                 return;
             }
             
-            // 检查是否撞到自己
             for (let segment of snake) {
                 if (head.x === segment.x && head.y === segment.y) {
                     gameOver();
@@ -935,80 +908,61 @@
                 }
             }
             
-            // 将新的头部添加到蛇身
             snake.unshift(head);
             
-            // 检查是否吃到食物
             if (head.x === food.x && head.y === food.y) {
-                // 增加分数
                 score += 10;
                 scoreElement.textContent = score;
                 
-                // 更新最高分
                 if (score > highScore) {
                     highScore = score;
                     highScoreElement.textContent = highScore;
                     localStorage.setItem('snakeHighScore', highScore);
                 }
                 
-                // 检查是否升级
                 const newLevel = Math.floor(score / 100) + 1;
                 if (newLevel > level) {
                     level = newLevel;
                     levelElement.textContent = level;
                     
-                    // 增加游戏速度
                     gameSpeed = Math.max(50, 120 - (level - 1) * 10);
                     
-                    // 重新设置游戏间隔
                     if (gameRunning && !gamePaused) {
                         clearInterval(gameInterval);
                         gameInterval = setInterval(updateGame, gameSpeed);
                     }
                 }
                 
-                // 生成新食物
                 generateFood();
             } else {
-                // 如果没有吃到食物，移除蛇尾
                 snake.pop();
             }
             
-            // 重绘画布
             drawGame();
         }
 
-        // ============== 修复1：添加防重复保存机制 ==============
+        // 游戏结束
         function gameOver() {
             gameRunning = false;
             clearInterval(gameInterval);
             
-            // 记录游戏结束时间
             lastGameTimestamp = Date.now();
             
-            // 显示游戏结束画面
             finalScoreElement.textContent = score;
             gameOverScreen.style.display = 'flex';
             
-            // 更新按钮文本
             startBtn.textContent = '开始游戏';
             
-            // ===== 修复：防止重复保存 =====
             if (!gameRecordSaved) {
-                // 保存游戏记录到历史
                 saveGameRecord();
                 gameRecordSaved = true;
             }
             
-            // 重新加载排行榜（仅当有新记录时）
             loadLeaderboard();
         }
 
-        // ============== 修复2&3：排行榜去重 + 改名记录迁移 ==============
-        
         // 保存游戏记录
         function saveGameRecord() {
-            // 获取玩家名称
             let name = playerName;
             if (isFirstGame && playerNameInput.value.trim()) {
                 name = playerNameInput.value.trim().substring(0, 15);
@@ -1022,14 +976,11 @@
                 name = "匿名玩家";
             }
             
-            // 获取当前时间
             const now = new Date();
             const dateStr = now.toLocaleDateString('zh-CN');
             
-            // 获取历史记录
             let history = JSON.parse(localStorage.getItem('snakeGameHistory') || '[]');
             
-            // 添加新记录
             history.push({
                 player: name,
                 score: score,
@@ -1038,18 +989,15 @@
                 timestamp: now.getTime()
             });
             
-            // 保存到本地存储（暂不排序和去重，保留所有记录用于计算最高分）
             localStorage.setItem('snakeGameHistory', JSON.stringify(history));
         }
 
-        // ============== 修复3：改名后迁移所有历史记录 ==============
+        // 改名后迁移所有历史记录
         function updateAllPlayerRecords(oldName, newName) {
             if (oldName === newName) return;
             
-            // 获取历史记录
             let history = JSON.parse(localStorage.getItem('snakeGameHistory') || '[]');
             
-            // 将所有旧名字的记录更新为新名字
             let updated = false;
             for (let i = 0; i < history.length; i++) {
                 if (history[i].player === oldName) {
@@ -1059,12 +1007,12 @@
             }
             
             if (updated) {
-                // 保存更新后的历史记录
                 localStorage.setItem('snakeGameHistory', JSON.stringify(history));
             }
         }
 
         // ============== 修复2：排行榜去重（每人只显示最高分）==============
+        // ============== 这是之前被截断的完整函数 ==============
         function loadLeaderboard() {
             // 获取历史记录
             let history = JSON.parse(localStorage.getItem('snakeGameHistory') || '[]');
@@ -1082,3 +1030,300 @@
                     playerBestScores.set(playerName, {
                         player: playerName,
                         score: record.score,
+                        date: record.date,
+                        timestamp: record.timestamp
+                    });
+                }
+            });
+            
+            // 将Map转换为数组并按分数排序
+            let leaderboard = Array.from(playerBestScores.values());
+            leaderboard.sort((a, b) => {
+                if (a.score !== b.score) {
+                    return b.score - a.score; // 高分优先
+                } else {
+                    return a.timestamp - b.timestamp; // 同分时先达到的优先
+                }
+            });
+            
+            // 只取前10名
+            const top10 = leaderboard.slice(0, 10);
+            
+            // 清空排行榜表格
+            leaderboardBody.innerHTML = '';
+            
+            if (top10.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="4" style="text-align: center; color: #a0a0c0; padding: 30px;">
+                        暂无游戏记录，快来成为第一名吧！
+                    </td>
+                `;
+                leaderboardBody.appendChild(row);
+                return;
+            }
+            
+            // 填充排行榜
+            top10.forEach((record, index) => {
+                const row = document.createElement('tr');
+                
+                let rankClass = '';
+                if (index === 0) rankClass = 'style="color: #ffd700;"';
+                else if (index === 1) rankClass = 'style="color: #c0c0c0;"';
+                else if (index === 2) rankClass = 'style="color: #cd7f32;"';
+                
+                row.innerHTML = `
+                    <td class="rank" ${rankClass}>${index + 1}</td>
+                    <td class="player">${record.player}</td>
+                    <td class="score">${record.score}</td>
+                    <td class="date">${record.date}</td>
+                `;
+                leaderboardBody.appendChild(row);
+            });
+        }
+
+        // 修改玩家名称
+        function changePlayerName() {
+            nameChangeContainer.classList.add('show');
+            gameOverScreen.style.display = 'none';
+            
+            newPlayerNameInput.value = playerName;
+            newPlayerNameInput.focus();
+            newPlayerNameInput.select();
+        }
+
+        // 保存新名称
+        function saveNewPlayerName() {
+            const newName = newPlayerNameInput.value.trim().substring(0, 15);
+            
+            if (!newName) {
+                alert('请输入有效的玩家名称！');
+                return;
+            }
+            
+            const oldName = playerName;
+            
+            // 更新玩家名称
+            playerName = newName;
+            localStorage.setItem('snakePlayerName', playerName);
+            
+            // 迁移所有历史记录到新名字
+            if (oldName) {
+                updateAllPlayerRecords(oldName, newName);
+            }
+            
+            // 更新最近一次游戏记录的时间戳
+            if (lastGameTimestamp) {
+                let history = JSON.parse(localStorage.getItem('snakeGameHistory') || '[]');
+                for (let i = history.length - 1; i >= 0; i--) {
+                    if (history[i].timestamp === lastGameTimestamp) {
+                        history[i].player = newName;
+                        break;
+                    }
+                }
+                localStorage.setItem('snakeGameHistory', JSON.stringify(history));
+            }
+            
+            // 隐藏名称修改界面，显示游戏结束界面
+            nameChangeContainer.classList.remove('show');
+            gameOverScreen.style.display = 'flex';
+            
+            // 重新加载排行榜
+            loadLeaderboard();
+            
+            alert(`名称已从"${oldName}"更新为"${newName}"，所有历史记录已迁移`);
+        }
+
+        // 取消名称修改
+        function cancelNameChange() {
+            nameChangeContainer.classList.remove('show');
+            gameOverScreen.style.display = 'flex';
+        }
+
+        // 开始游戏
+        function startGame() {
+            if (!gameRunning) {
+                if (isFirstGame && !playerNameInput.value.trim()) {
+                    alert('请输入玩家名称后再开始游戏！');
+                    playerNameInput.focus();
+                    return;
+                }
+                
+                gameRunning = true;
+                gamePaused = false;
+                startBtn.textContent = '游戏中...';
+                
+                if (snake.length === 0) {
+                    initGame();
+                }
+                
+                gameInterval = setInterval(updateGame, gameSpeed);
+                drawGame();
+            }
+        }
+
+        // 暂停/继续游戏
+        function togglePause() {
+            if (!gameRunning) return;
+            
+            if (gamePaused) {
+                gamePaused = false;
+                pauseBtn.textContent = '暂停游戏';
+                gameInterval = setInterval(updateGame, gameSpeed);
+            } else {
+                gamePaused = true;
+                pauseBtn.textContent = '继续游戏';
+                clearInterval(gameInterval);
+            }
+        }
+
+        // 重新开始游戏
+        function restartGame() {
+            clearInterval(gameInterval);
+            gameRunning = false;
+            gamePaused = false;
+            startBtn.textContent = '开始游戏';
+            pauseBtn.textContent = '暂停游戏';
+            initGame();
+            drawGame();
+        }
+
+        // 键盘控制
+        function handleKeyDown(e) {
+            if (isInputFocused) {
+                if (e.keyCode === 27) {
+                    if (nameChangeContainer.classList.contains('show')) {
+                        cancelNameChange();
+                    }
+                } else if (e.keyCode === 13 && nameChangeContainer.classList.contains('show')) {
+                    saveNewPlayerName();
+                }
+                return;
+            }
+            
+            if ([37, 38, 39, 40, 65, 87, 68, 83].includes(e.keyCode)) {
+                e.preventDefault();
+            }
+            
+            switch(e.keyCode) {
+                case 38:
+                case 87:
+                    if (direction !== 'down') nextDirection = 'up';
+                    break;
+                case 40:
+                case 83:
+                    if (direction !== 'up') nextDirection = 'down';
+                    break;
+                case 37:
+                case 65:
+                    if (direction !== 'right') nextDirection = 'left';
+                    break;
+                case 39:
+                case 68:
+                    if (direction !== 'left') nextDirection = 'right';
+                    break;
+                case 32:
+                    togglePause();
+                    break;
+                case 13:
+                    if (!gameRunning) startGame();
+                    break;
+                case 82:
+                    restartGame();
+                    break;
+            }
+        }
+
+        // 移动设备控制
+        function setupMobileControls() {
+            upBtn.addEventListener('click', () => {
+                if (direction !== 'down') nextDirection = 'up';
+            });
+            
+            downBtn.addEventListener('click', () => {
+                if (direction !== 'up') nextDirection = 'down';
+            });
+            
+            leftBtn.addEventListener('click', () => {
+                if (direction !== 'right') nextDirection = 'left';
+            });
+            
+            rightBtn.addEventListener('click', () => {
+                if (direction !== 'left') nextDirection = 'right';
+            });
+        }
+
+        // 切换排行榜显示
+        toggleLeaderboardBtn.addEventListener('click', function() {
+            if (leaderboardContainer.classList.contains('show')) {
+                leaderboardContainer.classList.remove('show');
+                this.textContent = '展开';
+            } else {
+                leaderboardContainer.classList.add('show');
+                this.textContent = '收起';
+            }
+        });
+
+        // 事件监听
+        startBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', togglePause);
+        restartBtn.addEventListener('click', restartGame);
+        restartBtn2.addEventListener('click', restartGame);
+        changeNameBtn.addEventListener('click', changePlayerName);
+        saveNameBtn.addEventListener('click', saveNewPlayerName);
+        cancelNameBtn.addEventListener('click', cancelNameChange);
+
+        // 输入框焦点事件处理
+        playerNameInput.addEventListener('focus', function() {
+            isInputFocused = true;
+        });
+        
+        playerNameInput.addEventListener('blur', function() {
+            isInputFocused = false;
+        });
+        
+        newPlayerNameInput.addEventListener('focus', function() {
+            isInputFocused = true;
+        });
+        
+        newPlayerNameInput.addEventListener('blur', function() {
+            isInputFocused = false;
+        });
+
+        // 初始化游戏
+        initGame();
+        drawGame();
+        
+        // 设置移动控制
+        setupMobileControls();
+        
+        // 监听键盘事件
+        document.addEventListener('keydown', handleKeyDown);
+        
+        // 显示最高分
+        highScoreElement.textContent = highScore;
+        
+        // 如果有保存的玩家名称，填充到输入框
+        if (playerName) {
+            playerNameInput.value = playerName;
+        }
+        
+        // 添加触摸事件支持
+        document.addEventListener('touchmove', function(e) {
+            if (e.target.classList.contains('dir-btn')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        
+        // 点击页面其他地方收起排行榜
+        document.addEventListener('touchstart', function(e) {
+            if (!leaderboardContainer.contains(e.target) && 
+                !toggleLeaderboardBtn.contains(e.target) &&
+                leaderboardContainer.classList.contains('show')) {
+                leaderboardContainer.classList.remove('show');
+                toggleLeaderboardBtn.textContent = '展开';
+            }
+        });
+    </script>
+</body>
+</html>
