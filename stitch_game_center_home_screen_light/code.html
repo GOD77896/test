@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html class="" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GOD7789's Game Center - let's have fun</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1e3a5f",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#0a0e14",
+                        "card-dark": "#161b22",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            width: 1280px;
+            height: 1024px;
+            margin: 0 auto;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at 50% 0%, rgba(30, 58, 95, 0.05), transparent 70%);
+        }
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="bg-white text-slate-900">
+<header class="z-50 glass-panel px-8 py-4 flex items-center justify-between shrink-0">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-10 bg-primary flex items-center justify-center rounded-lg shadow-[0_0_20px_rgba(30,58,95,0.4)]">
+<span class="material-symbols-outlined text-white text-2xl">videogame_asset</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-lg font-bold leading-none tracking-tight text-slate-900">GOD7789's Game Center</h1>
+<span class="text-primary text-[10px] uppercase tracking-[0.2em] font-bold">Gaming Hub v2.1</span>
+</div>
+</div>
+<nav class="flex items-center gap-8">
+<a class="hover:text-primary transition-colors text-sm font-semibold uppercase tracking-wider text-slate-900" href="#">Games</a>
+<a class="text-slate-400 hover:text-white transition-colors text-sm font-semibold uppercase tracking-wider" href="#">Leaderboard</a>
+<a class="text-slate-400 hover:text-white transition-colors text-sm font-semibold uppercase tracking-wider" href="#">Community</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center rounded-lg px-4 py-2 border w-64 focus-within:border-primary transition-all bg-slate-100 border-slate-200">
+<span class="material-symbols-outlined text-slate-500 text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-600 ml-2 text-slate-900" placeholder="Search for games..." type="text"/>
+</div>
+<button class="bg-primary hover:bg-primary/80 text-white px-6 py-2 rounded-lg text-sm font-bold transition-all">
+                Login
+            </button>
+<div class="size-10 rounded-full border-2 border-primary/30 bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuClDmcYxWXJuZsRUrS_VpiaYMzPmWhgUHKTQBYL8G8IKVqCMSgTOlU1Bokt4lK8QshvBbcBqAQl-Y4YLqWNffBLEL7Mmz9LarjlRXXZwI4_bUR0PSkc1smTJGtORJEEcrDzCJoGUgTVvklGk0T3lgwp-xas0oHY1n6WVCSj1xzdSNuHELJMPCEPGxAc_IjCTjsrIiUyhwPlAyAd4y52xwrko_k1wuwdQf1WJNcS-u-0KM0pV2m5nFTrZtPQHQKsX3qggiljIkjVXrI')"></div>
+</div>
+</header>
+<main class="flex-1 flex flex-col items-center hero-gradient overflow-y-auto">
+<section class="w-full max-w-[1200px] px-8 py-10 flex flex-col items-center text-center gap-3 shrink-0">
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-bold uppercase tracking-[0.2em]">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+                System Online: Welcome Back
+            </div>
+<h2 class="text-7xl font-black tracking-tighter leading-none uppercase italic drop-shadow-2xl text-slate-900">
+                let's have fun
+            </h2>
+<p class="text-slate-400 text-base max-w-2xl font-light mt-1">
+                Curated gaming experiences for the 1280x1024 resolution. High performance, zero lag, pure entertainment.
+            </p>
+<div class="flex justify-center gap-4 mt-2">
+<button class="flex items-center gap-3 bg-primary px-8 py-3 rounded-lg text-white font-bold text-base hover:translate-y-[-2px] transition-all shadow-xl shadow-primary/20">
+<span class="material-symbols-outlined">bolt</span>
+                    QUICK LAUNCH
+                </button>
+<button class="flex items-center gap-3 bg-white/5 border border-white/10 px-8 py-3 rounded-lg text-white font-bold text-base hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">grid_view</span>
+                    COLLECTION
+                </button>
+</div>
+</section>
+<section class="w-full max-w-[1200px] px-12 pb-12">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-3xl">terminal</span>
+<h3 class="text-2xl font-bold uppercase tracking-[0.2em] text-slate-900">Active Library</h3>
+</div>
+<div class="h-[1px] flex-1 mx-10 bg-gradient-to-r from-primary/60 via-primary/20 to-transparent"></div>
+<a class="text-primary text-sm font-bold hover:underline tracking-widest" href="#">REFRESH LIST</a>
+</div>
+<div class="game-grid">
+<div class="group relative flex flex-col rounded-2xl overflow-hidden border hover:border-primary/60 transition-all hover:shadow-[0_0_40px_rgba(30,58,95,0.25)] bg-white border-slate-200 shadow-sm">
+<div class="relative aspect-video overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-card-dark via-transparent to-transparent z-10"></div>
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCgFikHIi7wezc5gFDCuSxyP190sVzblzZT7WpaD4VbJhQ0e77h7oxLuy7qljh-xCmwhTgkLz4Z_WshFTP2TcOMeTb_x904vhf06p5sfie8vihuvufVKWQATJY9RHQr0A4DpXdscLqsHqzQuq1_-D2BQBiVvP0Spdze9D-QzLRdhx9vWHvE0fqxZEDPJRlDS2RgM1aSqQ92VV1Ej50-ehzZfNfUzMexw8NJUQFTuz8it1uYOaiZeWBAP-TeD2Whb6D__1fuAvHrR7E')"></div>
+<div class="absolute top-4 left-4 z-20">
+<span class="bg-primary/90 backdrop-blur text-[10px] text-white px-3 py-1 rounded-full font-bold uppercase tracking-widest shadow-lg">Classic</span>
+</div>
+</div>
+<div class="p-6 flex flex-col gap-4">
+<div>
+<h4 class="text-2xl font-bold mb-1 text-slate-900">Greedy Snake (贪食蛇)</h4>
+<p class="text-slate-400 text-sm leading-relaxed">A greedy snake game (一个贪食蛇的游戏) featuring neon aesthetics and responsive controls.</p>
+</div>
+<div class="flex items-center justify-between pt-5 border-t mt-2 border-slate-100">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-500 font-mono uppercase tracking-tighter">Instance ID</span>
+<span class="text-xs text-primary font-mono font-bold">0xSNAKE_7789</span>
+</div>
+<button class="bg-primary hover:bg-white hover:text-primary text-white px-8 py-2.5 rounded-lg text-sm font-black transition-all transform group-hover:scale-105">
+                                START
+                            </button>
+</div>
+</div>
+</div>
+<div class="group relative flex flex-col rounded-2xl overflow-hidden border hover:border-primary/60 transition-all hover:shadow-[0_0_40px_rgba(30,58,95,0.25)] bg-white border-slate-200 shadow-sm">
+<div class="relative aspect-video overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-t from-card-dark via-transparent to-transparent z-10"></div>
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBuuEMNjKWQKf2negwjOU7AhbV_-LgIPvQEKWH1xp2QajqhSVZ1b3ZD7VQrsovu2plsjmOfjcvripI_GifOMzNPBylrAmlCWSI82FXs7MboBPv9rt7mnEXIhZvJPrOHvHwyDbOvFCGQYscHCjDWFkP8k3MeB6au5ASwsQawiR-akuoGi4Apygcgu_dOuC38UGH-Ia3CjIL1CZ3PhDswEAfpz9-9Goy32-7GXnmdPKCDq5jubQYpKofhtuDQy7JeiybDq8M4Cvp67Qw')"></div>
+<div class="absolute top-4 left-4 z-20">
+<span class="bg-primary/90 backdrop-blur text-[10px] text-white px-3 py-1 rounded-full font-bold uppercase tracking-widest shadow-lg">New Release</span>
+</div>
+</div>
+<div class="p-6 flex flex-col gap-4">
+<div>
+<h4 class="text-2xl font-bold mb-1 text-slate-900">Tetris (俄罗斯方块)</h4>
+<p class="text-slate-400 text-sm leading-relaxed">A Tetris game (一个俄罗斯方块的游戏) with high-speed clearing and geometric visuals.</p>
+</div>
+<div class="flex items-center justify-between pt-5 border-t mt-2 border-slate-100">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-500 font-mono uppercase tracking-tighter">Instance ID</span>
+<span class="text-xs text-primary font-mono font-bold">0xTETRIS_7789</span>
+</div>
+<button class="bg-primary hover:bg-white hover:text-primary text-white px-8 py-2.5 rounded-lg text-sm font-black transition-all transform group-hover:scale-105">
+                                START
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="w-full border-y py-8 flex flex-col items-center mt-auto shrink-0 bg-slate-50 border-slate-200">
+<div class="max-w-[800px] text-center px-8">
+<h2 class="text-2xl font-bold mb-2 uppercase tracking-widest text-slate-900">Global Ranking Integration</h2>
+<p class="text-slate-400 text-sm mb-4 leading-relaxed">Join the GOD7789 community to compete in real-time leaderboards and unlock exclusive achievement badges.</p>
+<div class="flex justify-center gap-4">
+<button class="bg-primary hover:bg-primary/80 text-white px-8 py-2.5 rounded-lg font-bold text-sm transition-all border border-primary/50 shadow-lg">
+                        Create Game Profile
+                    </button>
+<button class="bg-white/5 hover:bg-white/10 text-white px-8 py-2.5 rounded-lg font-bold text-sm transition-all border border-white/10">
+                        View Hall of Fame
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<footer class="border-t pt-6 pb-4 px-16 shrink-0 bg-slate-50 border-slate-200">
+<div class="max-w-[1200px] mx-auto grid grid-cols-4 gap-8">
+<div class="col-span-2">
+<div class="flex items-center gap-3 mb-3">
+<div class="size-7 bg-primary flex items-center justify-center rounded-md">
+<span class="material-symbols-outlined text-white text-lg">videogame_asset</span>
+</div>
+<h2 class="text-base font-bold uppercase tracking-tight text-slate-900">GOD7789's Game Center</h2>
+</div>
+<p class="text-slate-500 text-xs leading-relaxed max-w-sm mb-4">
+                    The definitive destination for desktop arcade gaming. Optimized for 1280x1024 resolution.
+                </p>
+<div class="flex gap-3">
+<a class="size-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-primary transition-all border border-white/10" href="#">
+<span class="material-symbols-outlined text-lg">public</span>
+</a>
+<a class="size-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-primary transition-all border border-white/10" href="#">
+<span class="material-symbols-outlined text-lg">terminal</span>
+</a>
+<a class="size-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white hover:bg-primary transition-all border border-white/10" href="#">
+<span class="material-symbols-outlined text-lg">alternate_email</span>
+</a>
+</div>
+</div>
+<div>
+<h4 class="text-[10px] font-bold mb-3 uppercase tracking-widest border-l-2 border-primary pl-3 text-slate-900">Navigation</h4>
+<ul class="flex flex-col gap-1.5">
+<li><a class="text-slate-500 hover:text-primary transition-colors text-xs" href="#">Privacy Protocol</a></li>
+<li><a class="text-slate-500 hover:text-primary transition-colors text-xs" href="#">Terms of Play</a></li>
+<li><a class="text-slate-500 hover:text-primary transition-colors text-xs" href="#">Submission Portal</a></li>
+</ul>
+</div>
+<div>
+<h4 class="text-[10px] font-bold mb-3 uppercase tracking-widest border-l-2 border-primary pl-3 text-slate-900">Technical</h4>
+<ul class="flex flex-col gap-1.5">
+<li><a class="text-slate-500 hover:text-primary transition-colors text-xs" href="#">Help Center</a></li>
+<li><a class="text-slate-500 hover:text-primary transition-colors text-xs" href="#">API Status</a></li>
+<li><a class="text-slate-500 hover:text-primary transition-colors text-xs" href="#">Developer Logs</a></li>
+</ul>
+</div>
+</div>
+<div class="max-w-[1200px] mx-auto mt-6 pt-4 border-t flex justify-between items-center border-slate-200">
+<p class="text-slate-600 text-[10px] uppercase font-bold tracking-[0.1em]">
+                © 2023 GOD7789. ALL RIGHTS RESERVED.
+            </p>
+<div class="flex items-center gap-3">
+<span class="text-slate-600 text-[10px] font-bold uppercase">Mode:</span>
+<span class="text-primary font-black text-[10px] uppercase tracking-[0.2em] bg-primary/10 px-2 py-0.5 rounded">1280x1024_NATIVE</span>
+</div>
+</div>
+</footer>
+</body></html>

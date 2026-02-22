@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>俄罗斯方块</title>
+    <title>俄罗斯方块 - 修复版</title>
     <style>
         * {
             margin: 0;
@@ -402,8 +402,13 @@
 </head>
 <body>
     <div class="header">
-        <h1>俄罗斯方块</h1>
-        <p class="subtitle">经典益智游戏 - 消除行数越多，得分越高！</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div>
+                <h1>俄罗斯方块</h1>
+                <p class="subtitle">经典益智游戏 - 消除行数越多，得分越高！</p>
+            </div>
+            <a href="index.html" style="background: #4a6fa5; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: bold; transition: background 0.3s;">返回主页</a>
+        </div>
     </div>
     
     <div class="game-container">
@@ -667,7 +672,7 @@
         function createPiece() {
             // 随机选择方块类型（1-7）
             const type = Math.floor(Math.random() * 7) + 1;
-            const matrix = SHAPES[type];
+            const matrix = JSON.parse(JSON.stringify(SHAPES[type])); // 深拷贝
             
             return {
                 type,
@@ -678,7 +683,7 @@
 
         // 重置玩家方块
         function resetPlayer() {
-            player.matrix = nextPiece.matrix;
+            player.matrix = JSON.parse(JSON.stringify(nextPiece.matrix)); // 深拷贝
             player.type = nextPiece.type;
             player.pos.y = 0;
             player.pos.x = Math.floor(COLS / 2) - Math.floor(player.matrix[0].length / 2);
@@ -721,23 +726,25 @@
 
         // 旋转方块
         function rotate(matrix, dir) {
+            const newMatrix = JSON.parse(JSON.stringify(matrix)); // 创建副本
+            
             // 转置矩阵
-            for (let y = 0; y < matrix.length; ++y) {
+            for (let y = 0; y < newMatrix.length; ++y) {
                 for (let x = 0; x < y; ++x) {
-                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+                    [newMatrix[x][y], newMatrix[y][x]] = [newMatrix[y][x], newMatrix[x][y]];
                 }
             }
             
             // 反转行（顺时针旋转）
             if (dir > 0) {
-                matrix.forEach(row => row.reverse());
+                newMatrix.forEach(row => row.reverse());
             } 
             // 反转列（逆时针旋转）
             else {
-                matrix.reverse();
+                newMatrix.reverse();
             }
             
-            return matrix;
+            return newMatrix;
         }
 
         // 玩家移动
@@ -747,24 +754,30 @@
                 player.pos.x -= dir;
                 return false;
             }
+            draw();
             return true;
         }
 
         // 玩家旋转
         function playerRotate(dir) {
             const pos = player.pos.x;
-            let offset = 1;
-            rotate(player.matrix, dir);
+            const originalMatrix = player.matrix;
+            const rotatedMatrix = rotate(originalMatrix, dir);
             
+            player.matrix = rotatedMatrix;
+            
+            let offset = 1;
             while (collide(board, player)) {
                 player.pos.x += offset;
                 offset = -(offset + (offset > 0 ? 1 : -1));
                 if (offset > player.matrix[0].length) {
-                    rotate(player.matrix, -dir);
+                    player.matrix = originalMatrix;
                     player.pos.x = pos;
+                    draw();
                     return;
                 }
             }
+            draw();
         }
 
         // 玩家下落
@@ -773,11 +786,12 @@
             if (collide(board, player)) {
                 player.pos.y--;
                 merge(board, player);
-                resetPlayer();
                 sweep();
+                resetPlayer();
                 updateScore();
             }
             dropCounter = 0;
+            draw();
         }
 
         // 快速下落
@@ -787,28 +801,39 @@
             }
             player.pos.y--;
             merge(board, player);
-            resetPlayer();
             sweep();
+            resetPlayer();
             updateScore();
+            draw();
         }
 
         // 消除完整的行
         function sweep() {
             let rowCount = 0;
             
-            outer: for (let y = ROWS - 1; y >= 0; --y) {
+            for (let y = ROWS - 1; y >= 0; --y) {
+                let rowFilled = true;
                 for (let x = 0; x < COLS; ++x) {
                     if (board[y][x] === 0) {
-                        continue outer;
+                        rowFilled = false;
+                        break;
                     }
                 }
                 
-                // 移除完整的行
-                const row = board.splice(y, 1)[0].fill(0);
-                board.unshift(row);
-                ++y;
-                
-                rowCount++;
+                if (rowFilled) {
+                    // 移除完整的行
+                    for (let r = y; r > 0; --r) {
+                        for (let c = 0; c < COLS; ++c) {
+                            board[r][c] = board[r-1][c];
+                        }
+                    }
+                    // 顶行置空
+                    for (let c = 0; c < COLS; ++c) {
+                        board[0][c] = 0;
+                    }
+                    ++rowCount;
+                    ++y; // 重新检查当前行
+                }
             }
             
             if (rowCount > 0) {
@@ -828,30 +853,12 @@
                 
                 // 更新等级进度
                 updateLevelProgress();
-            }
-        }
-
-        // 更新分数
-        function updateScore() {
-            // 检查消除的行数
-            let rowCount = 0;
-            
-            for (let y = 0; y < ROWS; ++y) {
-                let rowFilled = true;
-                for (let x = 0; x < COLS; ++x) {
-                    if (board[y][x] === 0) {
-                        rowFilled = false;
-                        break;
-                    }
-                }
-                if (rowFilled) rowCount++;
-            }
-            
-            // 根据消除的行数计算得分
-            if (rowCount > 0) {
+                
+                // 更新分数
                 const linePoints = [0, 100, 300, 500, 800];
                 const addScore = linePoints[rowCount] * level;
                 score += addScore;
+                scoreElement.textContent = score;
                 
                 // 更新最高分
                 if (score > highScore) {
@@ -859,9 +866,12 @@
                     localStorage.setItem('tetrisHighScore', highScore);
                     highScoreElement.textContent = highScore;
                 }
-                
-                scoreElement.textContent = score;
             }
+        }
+
+        // 更新分数（简化版，实际分数已在sweep中更新）
+        function updateScore() {
+            // 分数更新已在sweep中完成，此函数保留以备将来扩展
         }
 
         // 更新等级进度
@@ -884,7 +894,9 @@
             drawBoard();
             
             // 绘制当前方块
-            drawMatrix(player.matrix, player.pos);
+            if (player.matrix) {
+                drawMatrix(player.matrix, player.pos);
+            }
             
             // 绘制边界
             ctx.strokeStyle = 'rgba(0, 255, 234, 0.3)';
@@ -997,6 +1009,8 @@
             nextCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
             
+            if (!nextPiece || !nextPiece.matrix) return;
+            
             const matrix = nextPiece.matrix;
             const offsetX = (nextCanvas.width / BLOCK_SIZE - matrix[0].length) / 2;
             const offsetY = (nextCanvas.height / BLOCK_SIZE - matrix.length) / 2;
@@ -1053,8 +1067,8 @@
                 gameOver = false;
                 startBtn.textContent = '游戏中...';
                 
-                // 如果游戏已结束，重新初始化
-                if (player.matrix === null) {
+                // 如果游戏已结束或未初始化，重新初始化
+                if (!player.matrix) {
                     initGame();
                 }
                 
@@ -1129,7 +1143,7 @@
             draw();
         }
 
-        // 移动设备控制
+        // ============== 修复：完成被截断的移动设备控制函数 ==============
         function setupMobileControls() {
             rotateBtn.addEventListener('click', () => {
                 if (gameRunning && !gamePaused && !gameOver) {
@@ -1141,4 +1155,56 @@
             leftBtn.addEventListener('click', () => {
                 if (gameRunning && !gamePaused && !gameOver) {
                     playerMove(-1);
-                   
+                    draw();
+                }
+            });
+            
+            rightBtn.addEventListener('click', () => {
+                if (gameRunning && !gamePaused && !gameOver) {
+                    playerMove(1);
+                    draw();
+                }
+            });
+            
+            downBtn.addEventListener('click', () => {
+                if (gameRunning && !gamePaused && !gameOver) {
+                    playerDrop();
+                    draw();
+                }
+            });
+            
+            dropBtn.addEventListener('click', () => {
+                if (gameRunning && !gamePaused && !gameOver) {
+                    playerDropToBottom();
+                    draw();
+                }
+            });
+        }
+
+        // 事件监听
+        startBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', togglePause);
+        restartBtn.addEventListener('click', restartGame);
+        restartBtn2.addEventListener('click', restartGame);
+
+        // 键盘事件监听
+        document.addEventListener('keydown', handleKeyDown);
+
+        // 初始化游戏
+        initGame();
+        
+        // 设置移动控制
+        setupMobileControls();
+        
+        // 显示最高分
+        highScoreElement.textContent = highScore;
+        
+        // 添加触摸事件支持，防止移动端滚动
+        document.addEventListener('touchmove', function(e) {
+            if (e.target.classList.contains('mobile-btn')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>
