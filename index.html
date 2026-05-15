@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>活動報名小幫手 | 活動報名系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f0f7ff 0%, #e9eef5 100%);
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 標題區域 */
+        .hero {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .hero p {
+            color: #4a627a;
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+
+        /* 新增表單卡片 */
+        .form-card {
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            border-left: 5px solid #3b82f6;
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            margin-bottom: 1.8rem;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #0f172a;
+            font-size: 0.9rem;
+        }
+
+        .input-group label span {
+            color: #ef4444;
+            font-size: 0.8rem;
+        }
+
+        .input-group input, 
+        .input-group select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            background: #fefefe;
+        }
+
+        .input-group input:focus, 
+        .input-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+
+        .btn-submit {
+            background: #1e3c72;
+            background: linear-gradient(95deg, #1e3c72, #2b4a8c);
+            border: none;
+            padding: 0.9rem 2rem;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            box-shadow: 0 6px 14px rgba(0, 33, 68, 0.2);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            background: #0f2b4f;
+            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+        }
+
+        /* 過濾器 + 統計 */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-radius: 60px;
+            padding: 0.5rem 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.05);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: none;
+            padding: 0.6rem 1.4rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #334155;
+        }
+
+        .filter-btn.active {
+            background: #1e3c72;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .stats-info {
+            background: #eef2ff;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e293b;
+        }
+
+        /* 卡片顯示區 (卡片樣式) */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.6rem;
+        }
+
+        .record-card {
+            background: white;
+            border-radius: 28px;
+            padding: 1.4rem 1.2rem 1.2rem 1.5rem;
+            box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.12);
+            transition: all 0.2s ease;
+            border: 1px solid #eef2ff;
+            position: relative;
+            backdrop-filter: blur(2px);
+        }
+
+        .record-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 28px -12px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 0.8rem;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 0.5rem;
+        }
+
+        .activity-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #0c4e6e;
+            word-break: break-word;
+        }
+
+        .status-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.3rem 0.7rem;
+            border-radius: 50px;
+            background: #e2e3e8;
+            color: #2d3e5f;
+        }
+
+        .status-badge.done {
+            background: #c7f9cc;
+            color: #0a5c2e;
+        }
+
+        .status-badge.active {
+            background: #ffe5b4;
+            color: #b45309;
+        }
+
+        .card-detail {
+            margin: 0.8rem 0;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .detail-label {
+            font-weight: 700;
+            min-width: 70px;
+            color: #475569;
+        }
+
+        .detail-value {
+            color: #1e293b;
+            word-break: break-word;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .toggle-status-btn {
+            background: none;
+            border: 1px solid #cbd5e1;
+            border-radius: 50px;
+            padding: 0.4rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #f8fafc;
+        }
+
+        .toggle-status-btn:hover {
+            background: #eef2ff;
+            transform: scale(0.97);
+        }
+
+        .delete-btn {
+            background: #fff1f0;
+            border: 1px solid #fecaca;
+            border-radius: 50px;
+            padding: 0.4rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #b91c1c;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #fee2e2;
+            border-color: #f87171;
+        }
+
+        .created-time {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 0.6rem;
+            text-align: right;
+        }
+
+        .empty-message {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 3rem;
+            background: #f1f5f9;
+            border-radius: 48px;
+            color: #5b6e8c;
+            font-weight: 500;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+            .form-card {
+                padding: 1.2rem;
+            }
+            .filter-bar {
+                flex-direction: column;
+                gap: 0.8rem;
+                align-items: stretch;
+                border-radius: 28px;
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="hero">
+        <h1>📋 活動報名 · 輕鬆管理</h1>
+        <p>新增報名 | 狀態切換 | 即時篩選 | 資料自動儲存</p>
+    </div>
+
+    <!-- 新增表單區 -->
+    <div class="form-card">
+        <div class="form-title">✨ 新增報名資料</div>
+        <div class="form-grid">
+            <div class="input-group">
+                <label>📌 活動名稱 <span>*</span></label>
+                <input type="text" id="activityName" placeholder="例：秋季登山健行" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>🏷️ 活動類別 <span>*</span></label>
+                <select id="activityCategory">
+                    <option value="運動戶外">運動戶外</option>
+                    <option value="音樂藝術">音樂藝術</option>
+                    <option value="講座課程">講座課程</option>
+                    <option value="志工服務">志工服務</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>📝 備註 / 人數限制 (可填)</label>
+                <input type="text" id="activityNote" placeholder="例如：限20人，需自備水壺">
+            </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end;">
+            <button class="btn-submit" id="createBtn">➕ 新增報名</button>
+        </div>
+    </div>
+
+    <!-- 過濾器及統計 -->
+    <div class="filter-bar">
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">📋 全部</button>
+            <button class="filter-btn" data-filter="active">🟡 報名中 (active)</button>
+            <button class="filter-btn" data-filter="done">✅ 已完成 (done)</button>
+        </div>
+        <div class="stats-info" id="statsInfo">共 0 筆報名</div>
+    </div>
+
+    <!-- 卡片展示區 -->
+    <div id="cardsContainer" class="cards-grid">
+        <!-- 動態卡片會顯示在這裡 -->
+        <div class="empty-message">✨ 目前沒有任何報名，請新增活動報名～</div>
+    </div>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // Data Contract (資料契約)
+    // --------------------------------------------------------------
+    // 每筆 record 包含以下屬性：
+    // - id: 唯一編號 (string) 採用 Date.now() + "_" + random 確保唯一
+    // - createdAt: 建立時間 ISO 字串 (new Date().toISOString())
+    // - status: 狀態 'active' 或 'done' (預設 active)
+    // - activityName: 活動名稱 (string, 對應自訂欄位1)
+    // - category: 活動類別 (string, 對應自訂欄位2)
+    // - note: 備註/人數限制 (string, 對應自訂欄位3, 可為空)
+    // 
+    // localStorage key 固定為 "records"
+    // --------------------------------------------------------------
+
+    // ---------- 全域變數 ----------
+    let records = [];            // 儲存所有報名物件
+    let currentFilter = "all";  // all / active / done
+
+    // DOM 元素
+    const activityNameInput = document.getElementById("activityName");
+    const activityCategorySelect = document.getElementById("activityCategory");
+    const activityNoteInput = document.getElementById("activityNote");
+    const createBtn = document.getElementById("createBtn");
+    const cardsContainer = document.getElementById("cardsContainer");
+    const statsInfo = document.getElementById("statsInfo");
+
+    // ---------- Helper: 產生唯一ID ----------
+    function generateId() {
+        return Date.now() + "_" + Math.random().toString(36).substring(2, 8);
+    }
+
+    // ---------- 1. createRecord(formData) ----------
+    // 參數 formData 為一個物件，包含 activityName, category, note
+    function createRecord(formData) {
+        // 必填驗證: activityName 不能為空 (類別有預設值，但前端額外保護)
+        if (!formData.activityName || formData.activityName.trim() === "") {
+            alert("請填寫活動名稱 (必填)");
+            return null;
+        }
+        const newRecord = {
+            id: generateId(),
+            createdAt: new Date().toISOString(),
+            status: "active",   // 預設 active
+            activityName: formData.activityName.trim(),
+            category: formData.category,
+            note: formData.note || ""
+        };
+        return newRecord;
+    }
+
+    // ---------- 2. saveData(record) : 只負責新增一條 record 到 records array，並寫入 localStorage ----------
+    function saveData(record) {
+        if (!record) return false;
+        // 新增到全域 records
+        records.push(record);
+        // 寫入 localStorage
+        localStorage.setItem("records", JSON.stringify(records));
+        return true;
+    }
+
+    // ---------- 3. loadData() : 讀取 localStorage，初始化 records ----------
+    function loadData() {
+        const stored = localStorage.getItem("records");
+        if (stored) {
+            try {
+                records = JSON.parse(stored);
+                // 確保舊資料相容性 (如果某些欄位缺失可補默認，但結構完整不用)
+                if (!Array.isArray(records)) records = [];
+            } catch(e) {
+                records = [];
+            }
+        } else {
+            records = [];
+        }
+        return records;
+    }
+
+    // ---------- 5. updateRecord(id, changes) : 更新單筆 record 並寫入 localStorage ----------
+    function updateRecord(id, changes) {
+        const index = records.findIndex(record => record.id === id);
+        if (index !== -1) {
+            // 合併更新 (淺層夠用)
+            records[index] = { ...records[index], ...changes };
+            localStorage.setItem("records", JSON.stringify(records));
+            return true;
+        }
+        return false;
+    }
+
+    // ---------- 刪除功能 (額外提供刪除record，符合易用性，但規格指定功能內可讓用戶刪除，合理) ----------
+    // 我們另外製作 deleteRecordById 輔助 (刪除後存檔並重新渲染)
+    function deleteRecordById(id) {
+        const newRecords = records.filter(record => record.id !== id);
+        if (newRecords.length !== records.length) {
+            records = newRecords;
+            localStorage.setItem("records", JSON.stringify(records));
+            return true;
+        }
+        return false;
+    }
+
+    // ---------- 4. renderList(recordsToShow) : 依照傳入的陣列渲染卡片(或空狀態) ----------
+    function renderList(recordsToShow) {
+        // 清空容器
+        cardsContainer.innerHTML = "";
+        
+        if (!recordsToShow || recordsToShow.length === 0) {
+            // 顯示空狀態
+            const emptyDiv = document.createElement("div");
+            emptyDiv.className = "empty-message";
+            emptyDiv.innerText = currentFilter === "all" ? "📭 目前沒有任何報名，請新增活動報名～" 
+                            : (currentFilter === "active" ? "🟡 沒有進行中的報名，新增一筆吧！" : "✅ 沒有已完成報名，切換狀態試試～");
+            cardsContainer.appendChild(emptyDiv);
+            // 更新統計
+            updateStats();
+            return;
+        }
+        
+        // 遍歷建立卡片
+        for (let record of recordsToShow) {
+            const card = document.createElement("div");
+            card.className = "record-card";
+            
+            // 狀態文字 mapping: active => 報名中, done => 已完成(自訂完成文字)
+            const statusDisplayText = record.status === "done" ? "✅ 已完成" : "🟡 報名中";
+            const statusClass = record.status === "done" ? "status-badge done" : "status-badge active";
+            
+            // 格式化時間 (顯示本地時間字串比較友善)
+            let createdDateStr = "建立時間不明";
+            try {
+                const dateObj = new Date(record.createdAt);
+                createdDateStr = `${dateObj.toLocaleDateString()} ${dateObj.toLocaleTimeString()}`;
+            } catch(e) { createdDateStr = record.createdAt; }
+            
+            // 卡片內部結構
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="activity-name">${escapeHtml(record.activityName)}</div>
+                    <div class="${statusClass}">${statusDisplayText}</div>
+                </div>
+                <div class="card-detail">
+                    <div class="detail-item">
+                        <span class="detail-label">🏷️ 類別：</span>
+                        <span class="detail-value">${escapeHtml(record.category)}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">📝 備註：</span>
+                        <span class="detail-value">${escapeHtml(record.note) || "— 無備註 —"}</span>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="toggle-status-btn" data-id="${record.id}" data-status="${record.status}">
+                        ${record.status === "active" ? "✔️ 標記為已完成" : "🔄 重啟報名"}
+                    </button>
+                    <button class="delete-btn" data-id="${record.id}">🗑️ 刪除</button>
+                </div>
+                <div class="created-time">
+                    🕒 報名時間：${createdDateStr}
+                </div>
+            `;
+            
+            cardsContainer.appendChild(card);
+        }
+        
+        // 綁定每個卡片上的切換狀態與刪除事件 (事件代理也可以，但獨立綁定較清晰)
+        document.querySelectorAll(".toggle-status-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute("data-id");
+                const currentStatus = btn.getAttribute("data-status");
+                // 切換邏輯 active <-> done
+                const newStatus = currentStatus === "active" ? "done" : "active";
+                // 呼叫 updateRecord 更新狀態
+                const success = updateRecord(id, { status: newStatus });
+                if (success) {
+                    // 重新讀取最新的 records (updateRecord 已更新全域 records 並存檔)
+                    // 再根據當前篩選重新渲染
+                    applyFilterAndRender();
+                } else {
+                    alert("更新狀態失敗");
+                }
+            });
+        });
+        
+        document.querySelectorAll(".delete-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute("data-id");
+                if (confirm("確定要刪除此筆報名嗎？")) {
+                    deleteRecordById(id);
+                    applyFilterAndRender();
+                }
+            });
+        });
+        
+        // 更新統計
+        updateStats();
+    }
+    
+    // 輔助: XSS 防護簡單跳脫
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+    
+    // 依照 currentFilter 過濾資料並呼叫 renderList
+    function applyFilterAndRender() {
+        let filtered = [];
+        if (currentFilter === "all") {
+            filtered = [...records];
+        } else if (currentFilter === "active") {
+            filtered = records.filter(rec => rec.status === "active");
+        } else if (currentFilter === "done") {
+            filtered = records.filter(rec => rec.status === "done");
+        }
+        renderList(filtered);
+    }
+    
+    // 更新統計數字 (全部/ active / done)
+    function updateStats() {
+        const total = records.length;
+        const activeCount = records.filter(r => r.status === "active").length;
+        const doneCount = records.filter(r => r.status === "done").length;
+        statsInfo.innerHTML = `📊 總共 ${total} 筆  |  🟡 報名中 ${activeCount}  |  ✅ 已完成 ${doneCount}`;
+    }
+    
+    // 處理新增表單流程
+    function handleCreateRecord() {
+        // 收集表單資料
+        const activityName = activityNameInput.value;
+        const category = activityCategorySelect.value;
+        const note = activityNoteInput.value;
+        
+        const formData = {
+            activityName: activityName,
+            category: category,
+            note: note
+        };
+        
+        const newRecord = createRecord(formData);
+        if (newRecord) {
+            // saveData 新增到 records 並儲存
+            saveData(newRecord);
+            // 清空表單 (保留類別預設，清空名稱與備註方便連續新增)
+            activityNameInput.value = "";
+            activityNoteInput.value = "";
+            // 重新整理當前視圖（按照現有篩選條件重新渲染）
+            applyFilterAndRender();
+            // 如果當前篩選狀態為 'done' 但新增active，依舊讓使用者看到新增的? 保留現有過濾器
+            // 但使用者體驗: 如果目前在done篩選下新增，會看不到，因此我們可以智能提醒但維持規範
+            // 但為了直覺: 若使用者目前篩選為 done 且新增 active 不會顯示，可提示? 但無傷大雅.
+            if (currentFilter === "done") {
+                // 溫柔提示
+                const tip = document.createElement("div");
+                tip.style.position = "fixed";
+                tip.style.bottom = "20px";
+                tip.style.left = "20px";
+                tip.style.background = "#1e293b";
+                tip.style.color = "white";
+                tip.style.padding = "8px 16px";
+                tip.style.borderRadius = "40px";
+                tip.style.fontSize = "0.8rem";
+                tip.style.zIndex = "999";
+                tip.innerText = "✨ 新增成功！目前篩選為「已完成」，可切換至「全部」查看新報名";
+                document.body.appendChild(tip);
+                setTimeout(() => tip.remove(), 2500);
+            }
+        }
+    }
+    
+    // 設定過濾器按鈕事件
+    function bindFilterEvents() {
+        const filterBtns = document.querySelectorAll(".filter-btn");
+        filterBtns.forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const filterValue = btn.getAttribute("data-filter");
+                if (filterValue) {
+                    currentFilter = filterValue;
+                    // 更新樣式 active
+                    filterBtns.forEach(bt => bt.classList.remove("active"));
+                    btn.classList.add("active");
+                    // 重新套用過濾渲染
+                    applyFilterAndRender();
+                }
+            });
+        });
+    }
+    
+    // 初始化頁面: 載入資料、綁定監聽、渲染全部
+    function init() {
+        loadData();               // 讀取 localStorage 至 records
+        bindFilterEvents();      // 綁定過濾器
+        createBtn.addEventListener("click", handleCreateRecord);
+        // 允許按 enter 快捷（表單第一個輸入框觸發）
+        activityNameInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                handleCreateRecord();
+            }
+        });
+        // 初始渲染全部（根據 currentFilter = "all"）
+        applyFilterAndRender();
+    }
+    
+    // 啟動
+    init();
+</script>
+</body>
+</html>
