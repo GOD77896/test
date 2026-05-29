@@ -131,7 +131,7 @@
             box-shadow: 0 12px 20px rgba(0,0,0,0.1);
         }
 
-        /* 過濾器 + 統計 */
+        /* 過濾器 + 統計 + 搜尋 */
         .filter-bar {
             display: flex;
             flex-wrap: wrap;
@@ -142,6 +142,7 @@
             padding: 0.5rem 1rem;
             margin-bottom: 2rem;
             box-shadow: 0 5px 12px rgba(0,0,0,0.05);
+            gap: 0.8rem;
         }
 
         .filter-buttons {
@@ -168,6 +169,32 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
+        /* 搜尋框容器 */
+        .search-box {
+            flex: 1;
+            min-width: 180px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .search-box input {
+            width: 100%;
+            max-width: 300px;
+            padding: 0.6rem 1.2rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            background: #f9fafb;
+            transition: 0.2s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+            background: white;
+        }
+
         .stats-info {
             background: #eef2ff;
             padding: 0.4rem 1.2rem;
@@ -175,6 +202,7 @@
             font-size: 0.85rem;
             font-weight: 500;
             color: #1e293b;
+            white-space: nowrap;
         }
 
         /* 卡片顯示區 (卡片樣式) */
@@ -334,6 +362,12 @@
                 border-radius: 28px;
                 padding: 1rem;
             }
+            .search-box {
+                order: -1; /* 手機版搜尋框置頂 */
+            }
+            .search-box input {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
@@ -342,7 +376,7 @@
 <div class="container">
     <div class="hero">
         <h1>📋 活動報名 · 輕鬆管理</h1>
-        <p>新增報名 | 狀態切換 | 即時篩選 | Google Sheet 同步</p>
+        <p>新增報名 | 狀態切換 | 即時篩選 | 搜尋活動 | Google Sheet 同步</p>
     </div>
 
     <!-- 新增表單區 -->
@@ -373,12 +407,15 @@
         </div>
     </div>
 
-    <!-- 過濾器及統計 -->
+    <!-- 過濾器及統計 + 搜尋 -->
     <div class="filter-bar">
         <div class="filter-buttons">
             <button class="filter-btn active" data-filter="all">📋 全部</button>
             <button class="filter-btn" data-filter="active">🟡 報名中 (active)</button>
             <button class="filter-btn" data-filter="done">✅ 已完成 (done)</button>
+        </div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="🔍 搜尋活動名稱、類別或備註..." autocomplete="off">
         </div>
         <div class="stats-info" id="statsInfo">共 0 筆報名</div>
     </div>
@@ -406,6 +443,7 @@
     // --------------------------------------------------------------
     let records = [];
     let currentFilter = "all";
+    let searchQuery = ""; // 新增：搜尋關鍵字
 
     // DOM
     const activityNameInput = document.getElementById("activityName");
@@ -414,6 +452,7 @@
     const createBtn = document.getElementById("createBtn");
     const cardsContainer = document.getElementById("cardsContainer");
     const statsInfo = document.getElementById("statsInfo");
+    const searchInput = document.getElementById("searchInput"); // 新增
 
     // ---------- 輔助: 唯一 ID ----------
     function generateId() {
@@ -549,14 +588,19 @@
     }
 
     // ---------- 6. 渲染 ----------
-    function renderList(recordsToShow) {
+    function renderList(recordsToShow, customEmptyMessage) {
         cardsContainer.innerHTML = "";
         
         if (!recordsToShow || recordsToShow.length === 0) {
             const emptyDiv = document.createElement("div");
             emptyDiv.className = "empty-message";
-            emptyDiv.innerText = currentFilter === "all" ? "📭 目前沒有任何報名，請新增活動報名～" 
-                            : (currentFilter === "active" ? "🟡 沒有進行中的報名，新增一筆吧！" : "✅ 沒有已完成報名，切換狀態試試～");
+            // 優先使用自訂訊息
+            if (customEmptyMessage) {
+                emptyDiv.innerText = customEmptyMessage;
+            } else {
+                emptyDiv.innerText = currentFilter === "all" ? "📭 目前沒有任何報名，請新增活動報名～" 
+                                : (currentFilter === "active" ? "🟡 沒有進行中的報名，新增一筆吧！" : "✅ 沒有已完成報名，切換狀態試試～");
+            }
             cardsContainer.appendChild(emptyDiv);
             updateStats();
             return;
@@ -656,6 +700,7 @@
     }
     
     function applyFilterAndRender() {
+        // 先依狀態過濾
         let filtered = [];
         if (currentFilter === "all") {
             filtered = [...records];
@@ -664,7 +709,25 @@
         } else if (currentFilter === "done") {
             filtered = records.filter(rec => rec.status === "done");
         }
-        renderList(filtered);
+        
+        // 再依搜尋關鍵字過濾（不區分大小寫，比對名稱、類別、備註）
+        if (searchQuery.trim() !== "") {
+            const q = searchQuery.trim().toLowerCase();
+            filtered = filtered.filter(rec => {
+                const name = (rec.activityName || "").toLowerCase();
+                const cat = (rec.category || "").toLowerCase();
+                const note = (rec.note || "").toLowerCase();
+                return name.includes(q) || cat.includes(q) || note.includes(q);
+            });
+        }
+        
+        // 準備自訂空訊息（當有搜尋關鍵字且結果為空時）
+        let emptyMsg = null;
+        if (filtered.length === 0 && searchQuery.trim() !== "") {
+            emptyMsg = `🔍 找不到與「${searchQuery.trim()}」相關的活動`;
+        }
+        
+        renderList(filtered, emptyMsg);
     }
     
     function updateStats() {
@@ -743,6 +806,12 @@
                 e.preventDefault();
                 handleCreateRecord();
             }
+        });
+        
+        // 搜尋框即時監聽
+        searchInput.addEventListener("input", (e) => {
+            searchQuery = e.target.value;
+            applyFilterAndRender();
         });
         
         // 嘗試從 Google Sheet 載入資料
