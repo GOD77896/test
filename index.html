@@ -149,7 +149,7 @@
             box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
         }
 
-        /* 過濾器 + 統計 + 搜尋 */
+        /* 過濾器 + 統計 + 搜尋 + 排序 */
         .filter-bar {
             display: flex;
             flex-wrap: wrap;
@@ -221,6 +221,35 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 4px rgba(59,130,246,0.12);
             background: white;
+        }
+
+        /* 排序下拉容器 */
+        .sort-box {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .sort-box select {
+            padding: 0.6rem 2rem 0.6rem 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: white;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.8rem center;
+            background-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .sort-box select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.12);
         }
 
         .stats-info {
@@ -543,6 +572,9 @@
             .search-box input {
                 max-width: 100%;
             }
+            .sort-box {
+                order: 1;
+            }
             .visualization-section {
                 flex-direction: column;
                 padding: 1.2rem;
@@ -572,7 +604,7 @@
 <div class="container">
     <div class="hero">
         <h1>📋 活動報名 · 輕鬆管理</h1>
-        <p>新增報名 | 狀態切換 | 即時篩選 | 搜尋活動 | 圖表分析 | Google Sheet 同步</p>
+        <p>新增報名 | 狀態切換 | 即時篩選 | 搜尋活動 | 排序 | 圖表分析 | Google Sheet 同步</p>
     </div>
 
     <!-- 新增表單區 -->
@@ -603,7 +635,7 @@
         </div>
     </div>
 
-    <!-- 過濾器及統計 + 搜尋 -->
+    <!-- 過濾器及統計 + 搜尋 + 排序 -->
     <div class="filter-bar">
         <div class="filter-buttons">
             <button class="filter-btn active" data-filter="all">📋 全部</button>
@@ -613,17 +645,26 @@
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="🔍 搜尋活動名稱、類別或備註..." autocomplete="off">
         </div>
+        <div class="sort-box">
+            <select id="sortSelect">
+                <option value="default">🔃 預設排序</option>
+                <option value="nameAsc">活動名稱 A → Z</option>
+                <option value="nameDesc">活動名稱 Z → A</option>
+                <option value="timeNew">建立時間 新 → 舊</option>
+                <option value="timeOld">建立時間 舊 → 新</option>
+                <option value="statusActiveFirst">狀態：報名中優先</option>
+                <option value="statusDoneFirst">狀態：已完成優先</option>
+            </select>
+        </div>
         <div class="stats-info" id="statsInfo">共 0 筆報名</div>
     </div>
 
     <!-- 📊 資料視覺化區塊 -->
     <section id="visualizationSection" class="visualization-section">
-        <!-- 長條圖：各類別活動數量 -->
         <div class="chart-block bar-chart">
             <div class="chart-title">📂 各類別活動數量</div>
-            <div id="categoryBars"><!-- 動態產生的長條圖 --></div>
+            <div id="categoryBars"><!-- 動態長條圖 --></div>
         </div>
-        <!-- 圓餅圖：狀態分布 -->
         <div class="chart-block pie-chart">
             <div class="chart-title">🍩 報名狀態分布</div>
             <canvas id="statusPieCanvas" width="200" height="200"></canvas>
@@ -633,7 +674,6 @@
 
     <!-- 卡片展示區 -->
     <div id="cardsContainer" class="cards-grid">
-        <!-- 動態卡片會顯示在這裡 -->
         <div class="empty-message">✨ 目前沒有任何報名，請新增活動報名～</div>
     </div>
 </div>
@@ -654,7 +694,8 @@
     // --------------------------------------------------------------
     let records = [];
     let currentFilter = "all";
-    let searchQuery = ""; // 搜尋關鍵字
+    let searchQuery = "";
+    let currentSort = "default"; // 排序方式
 
     // DOM
     const activityNameInput = document.getElementById("activityName");
@@ -664,6 +705,7 @@
     const cardsContainer = document.getElementById("cardsContainer");
     const statsInfo = document.getElementById("statsInfo");
     const searchInput = document.getElementById("searchInput");
+    const sortSelect = document.getElementById("sortSelect");
 
     // ---------- 輔助: 唯一 ID ----------
     function generateId() {
@@ -710,7 +752,6 @@
     }
 
     // ---------- 3. Google Sheet 雙向對映 ----------
-    // 後端 → 前端
     function normalizeRecord(raw) {
         const map = {
             "ID": "id",
@@ -902,8 +943,36 @@
             return m;
         });
     }
+
+    // 排序功能：對過濾後的陣列進行排序
+    function sortRecords(recordsArray) {
+        const arr = [...recordsArray];
+        switch (currentSort) {
+            case "nameAsc":
+                return arr.sort((a, b) => a.activityName.localeCompare(b.activityName, 'zh-Hant'));
+            case "nameDesc":
+                return arr.sort((a, b) => b.activityName.localeCompare(a.activityName, 'zh-Hant'));
+            case "timeNew":
+                return arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            case "timeOld":
+                return arr.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            case "statusActiveFirst":
+                return arr.sort((a, b) => {
+                    if (a.status === b.status) return 0;
+                    return a.status === "active" ? -1 : 1;
+                });
+            case "statusDoneFirst":
+                return arr.sort((a, b) => {
+                    if (a.status === b.status) return 0;
+                    return a.status === "done" ? -1 : 1;
+                });
+            default: // "default" 不排序，保持原順序
+                return arr;
+        }
+    }
     
     function applyFilterAndRender() {
+        // 依狀態過濾
         let filtered = [];
         if (currentFilter === "all") {
             filtered = [...records];
@@ -913,6 +982,7 @@
             filtered = records.filter(rec => rec.status === "done");
         }
         
+        // 依搜尋關鍵字過濾
         if (searchQuery.trim() !== "") {
             const q = searchQuery.trim().toLowerCase();
             filtered = filtered.filter(rec => {
@@ -923,13 +993,15 @@
             });
         }
         
+        // 套用排序
+        filtered = sortRecords(filtered);
+        
         let emptyMsg = null;
         if (filtered.length === 0 && searchQuery.trim() !== "") {
             emptyMsg = `🔍 找不到與「${searchQuery.trim()}」相關的活動`;
         }
         
         renderList(filtered, emptyMsg);
-        // 每次資料變更後更新視覺化圖表
         drawVisualization();
     }
     
@@ -940,14 +1012,13 @@
         statsInfo.innerHTML = `📊 總共 ${total} 筆  |  🟡 報名中 ${activeCount}  |  ✅ 已完成 ${doneCount}`;
     }
 
-    // ---------- 6.5 資料視覺化 (純前端，只讀 records) ----------
+    // ---------- 6.5 資料視覺化 (純前端) ----------
     function drawVisualization() {
         const categoryBarsContainer = document.getElementById("categoryBars");
         const canvas = document.getElementById("statusPieCanvas");
         const legendDiv = document.getElementById("pieLegend");
         if (!categoryBarsContainer || !canvas) return;
 
-        // 如果沒有任何記錄，顯示提示並清空圖表
         if (records.length === 0) {
             categoryBarsContainer.innerHTML = '<div class="no-data-message">尚無活動資料</div>';
             const ctx = canvas.getContext("2d");
@@ -956,7 +1027,6 @@
             return;
         }
 
-        // 1. 類別長條圖
         const categories = ["運動戶外", "音樂藝術", "講座課程", "志工服務", "其他"];
         const categoryCount = {};
         categories.forEach(cat => categoryCount[cat] = 0);
@@ -964,7 +1034,6 @@
             if (categoryCount.hasOwnProperty(rec.category)) {
                 categoryCount[rec.category]++;
             } else {
-                // 若出現未定義類別，仍納入統計
                 if (!categoryCount[rec.category]) categoryCount[rec.category] = 0;
                 categoryCount[rec.category]++;
             }
@@ -987,7 +1056,6 @@
         }
         categoryBarsContainer.innerHTML = barsHTML;
 
-        // 2. 狀態圓餅圖 (Canvas)
         const ctx = canvas.getContext("2d");
         const width = canvas.width;
         const height = canvas.height;
@@ -1006,8 +1074,8 @@
         const centerY = height / 2;
         const radius = Math.min(width, height) * 0.35;
         const angles = [
-            { count: activeCount, color: "#f59e0b" }, // active 黃色
-            { count: doneCount, color: "#10b981" }    // done 綠色
+            { count: activeCount, color: "#f59e0b" },
+            { count: doneCount, color: "#10b981" }
         ];
         let startAngle = -Math.PI / 2;
 
@@ -1019,20 +1087,17 @@
             ctx.closePath();
             ctx.fillStyle = slice.color;
             ctx.fill();
-            // 繪製白邊分隔
             ctx.strokeStyle = "#ffffff";
             ctx.lineWidth = 2;
             ctx.stroke();
             startAngle += sliceAngle;
         });
 
-        // 內部空白圓心（甜甜圈效果）
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius * 0.5, 0, 2 * Math.PI);
         ctx.fillStyle = "#ffffff";
         ctx.fill();
 
-        // 圖例
         legendDiv.innerHTML = `
             <span style="display:inline-block;width:12px;height:12px;background:#f59e0b;border-radius:3px;margin-right:4px;"></span> 報名中 ${activeCount} 筆
             <span style="display:inline-block;width:12px;height:12px;background:#10b981;border-radius:3px;margin-left:12px;margin-right:4px;"></span> 已完成 ${doneCount} 筆
@@ -1110,6 +1175,11 @@
         
         searchInput.addEventListener("input", (e) => {
             searchQuery = e.target.value;
+            applyFilterAndRender();
+        });
+        
+        sortSelect.addEventListener("change", (e) => {
+            currentSort = e.target.value;
             applyFilterAndRender();
         });
         
