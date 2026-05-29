@@ -235,6 +235,97 @@
             backdrop-filter: blur(4px);
         }
 
+        /* ---------- 資料視覺化區塊 ---------- */
+        .visualization-section {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            padding: 1.8rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 12px 28px -10px rgba(0, 20, 60, 0.06);
+            border: 1px solid rgba(255,255,255,0.7);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .chart-block {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+            border-left: 4px solid #3b82f6;
+        }
+
+        /* 類別長條圖 (純 CSS) */
+        .bar-chart .bar-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.7rem;
+            gap: 0.8rem;
+        }
+
+        .bar-label {
+            width: 90px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #334155;
+            text-align: right;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 24px;
+            background: #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            transition: width 0.4s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            min-width: 30px;
+        }
+
+        .bar-count {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #475569;
+            min-width: 30px;
+        }
+
+        /* 狀態圓餅圖 Canvas */
+        .pie-chart canvas {
+            display: block;
+            margin: 0 auto;
+            max-width: 200px;
+        }
+
+        .no-data-message {
+            text-align: center;
+            color: #94a3b8;
+            font-weight: 500;
+            padding: 1rem;
+            width: 100%;
+        }
+
         /* 卡片顯示區 */
         .cards-grid {
             display: grid;
@@ -452,6 +543,10 @@
             .search-box input {
                 max-width: 100%;
             }
+            .visualization-section {
+                flex-direction: column;
+                padding: 1.2rem;
+            }
             .cards-grid {
                 grid-template-columns: 1fr;
                 gap: 1.2rem;
@@ -477,7 +572,7 @@
 <div class="container">
     <div class="hero">
         <h1>📋 活動報名 · 輕鬆管理</h1>
-        <p>新增報名 | 狀態切換 | 即時篩選 | 搜尋活動 | Google Sheet 同步</p>
+        <p>新增報名 | 狀態切換 | 即時篩選 | 搜尋活動 | 圖表分析 | Google Sheet 同步</p>
     </div>
 
     <!-- 新增表單區 -->
@@ -521,6 +616,21 @@
         <div class="stats-info" id="statsInfo">共 0 筆報名</div>
     </div>
 
+    <!-- 📊 資料視覺化區塊 -->
+    <section id="visualizationSection" class="visualization-section">
+        <!-- 長條圖：各類別活動數量 -->
+        <div class="chart-block bar-chart">
+            <div class="chart-title">📂 各類別活動數量</div>
+            <div id="categoryBars"><!-- 動態產生的長條圖 --></div>
+        </div>
+        <!-- 圓餅圖：狀態分布 -->
+        <div class="chart-block pie-chart">
+            <div class="chart-title">🍩 報名狀態分布</div>
+            <canvas id="statusPieCanvas" width="200" height="200"></canvas>
+            <div id="pieLegend" style="text-align: center; margin-top: 0.5rem; font-size:0.85rem;"></div>
+        </div>
+    </section>
+
     <!-- 卡片展示區 -->
     <div id="cardsContainer" class="cards-grid">
         <!-- 動態卡片會顯示在這裡 -->
@@ -544,7 +654,7 @@
     // --------------------------------------------------------------
     let records = [];
     let currentFilter = "all";
-    let searchQuery = ""; // 新增：搜尋關鍵字
+    let searchQuery = ""; // 搜尋關鍵字
 
     // DOM
     const activityNameInput = document.getElementById("activityName");
@@ -553,7 +663,7 @@
     const createBtn = document.getElementById("createBtn");
     const cardsContainer = document.getElementById("cardsContainer");
     const statsInfo = document.getElementById("statsInfo");
-    const searchInput = document.getElementById("searchInput"); // 新增
+    const searchInput = document.getElementById("searchInput");
 
     // ---------- 輔助: 唯一 ID ----------
     function generateId() {
@@ -602,7 +712,6 @@
     // ---------- 3. Google Sheet 雙向對映 ----------
     // 後端 → 前端
     function normalizeRecord(raw) {
-        // raw 的鍵是中文標頭，例如 { ID, 建立時間, 狀態, 活動名稱, 活動類別, 備註 }
         const map = {
             "ID": "id",
             "建立時間": "createdAt",
@@ -613,13 +722,12 @@
         };
         const record = {};
         Object.keys(raw).forEach(key => {
-            const frontKey = map[key] || key; // 若無對映則保留原鍵
+            const frontKey = map[key] || key;
             record[frontKey] = raw[key];
         });
         return record;
     }
 
-    // 前端 → 後端 (完整 record 或部分 changes)
     function toSheetRecord(frontendRecord) {
         const map = {
             "id": "ID",
@@ -662,7 +770,6 @@
             return data;
         } catch (err) {
             console.error("syncToSheet error:", err);
-            // 可在此觸發 UI 提示，但不中斷本地操作
             throw err;
         }
     }
@@ -695,7 +802,6 @@
         if (!recordsToShow || recordsToShow.length === 0) {
             const emptyDiv = document.createElement("div");
             emptyDiv.className = "empty-message";
-            // 優先使用自訂訊息
             if (customEmptyMessage) {
                 emptyDiv.innerText = customEmptyMessage;
             } else {
@@ -749,7 +855,6 @@
             cardsContainer.appendChild(card);
         }
         
-        // 綁定事件
         document.querySelectorAll(".toggle-status-btn").forEach(btn => {
             btn.addEventListener("click", async (e) => {
                 e.stopPropagation();
@@ -759,7 +864,6 @@
                 const success = updateRecord(id, { status: newStatus });
                 if (success) {
                     applyFilterAndRender();
-                    // 同步至 Sheet
                     try {
                         await syncToSheet({
                             action: "update",
@@ -782,7 +886,6 @@
                 if (confirm("確定要刪除此筆報名嗎？")) {
                     deleteRecordById(id);
                     applyFilterAndRender();
-                    // 注意：後端無 delete action，此處僅本地刪除
                 }
             });
         });
@@ -801,7 +904,6 @@
     }
     
     function applyFilterAndRender() {
-        // 先依狀態過濾
         let filtered = [];
         if (currentFilter === "all") {
             filtered = [...records];
@@ -811,7 +913,6 @@
             filtered = records.filter(rec => rec.status === "done");
         }
         
-        // 再依搜尋關鍵字過濾（不區分大小寫，比對名稱、類別、備註）
         if (searchQuery.trim() !== "") {
             const q = searchQuery.trim().toLowerCase();
             filtered = filtered.filter(rec => {
@@ -822,13 +923,14 @@
             });
         }
         
-        // 準備自訂空訊息（當有搜尋關鍵字且結果為空時）
         let emptyMsg = null;
         if (filtered.length === 0 && searchQuery.trim() !== "") {
             emptyMsg = `🔍 找不到與「${searchQuery.trim()}」相關的活動`;
         }
         
         renderList(filtered, emptyMsg);
+        // 每次資料變更後更新視覺化圖表
+        drawVisualization();
     }
     
     function updateStats() {
@@ -836,6 +938,105 @@
         const activeCount = records.filter(r => r.status === "active").length;
         const doneCount = records.filter(r => r.status === "done").length;
         statsInfo.innerHTML = `📊 總共 ${total} 筆  |  🟡 報名中 ${activeCount}  |  ✅ 已完成 ${doneCount}`;
+    }
+
+    // ---------- 6.5 資料視覺化 (純前端，只讀 records) ----------
+    function drawVisualization() {
+        const categoryBarsContainer = document.getElementById("categoryBars");
+        const canvas = document.getElementById("statusPieCanvas");
+        const legendDiv = document.getElementById("pieLegend");
+        if (!categoryBarsContainer || !canvas) return;
+
+        // 如果沒有任何記錄，顯示提示並清空圖表
+        if (records.length === 0) {
+            categoryBarsContainer.innerHTML = '<div class="no-data-message">尚無活動資料</div>';
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            legendDiv.innerHTML = '';
+            return;
+        }
+
+        // 1. 類別長條圖
+        const categories = ["運動戶外", "音樂藝術", "講座課程", "志工服務", "其他"];
+        const categoryCount = {};
+        categories.forEach(cat => categoryCount[cat] = 0);
+        records.forEach(rec => {
+            if (categoryCount.hasOwnProperty(rec.category)) {
+                categoryCount[rec.category]++;
+            } else {
+                // 若出現未定義類別，仍納入統計
+                if (!categoryCount[rec.category]) categoryCount[rec.category] = 0;
+                categoryCount[rec.category]++;
+            }
+        });
+
+        const maxCount = Math.max(...Object.values(categoryCount), 1);
+        let barsHTML = '';
+        for (let cat of categories) {
+            const count = categoryCount[cat];
+            const percent = (count / maxCount) * 100;
+            barsHTML += `
+                <div class="bar-item">
+                    <span class="bar-label">${cat}</span>
+                    <div class="bar-track">
+                        <div class="bar-fill" style="width: ${percent}%;">${count > 0 ? count : ''}</div>
+                    </div>
+                    <span class="bar-count">${count}</span>
+                </div>
+            `;
+        }
+        categoryBarsContainer.innerHTML = barsHTML;
+
+        // 2. 狀態圓餅圖 (Canvas)
+        const ctx = canvas.getContext("2d");
+        const width = canvas.width;
+        const height = canvas.height;
+        ctx.clearRect(0, 0, width, height);
+
+        const activeCount = records.filter(r => r.status === "active").length;
+        const doneCount = records.filter(r => r.status === "done").length;
+        const totalStatus = activeCount + doneCount;
+
+        if (totalStatus === 0) {
+            legendDiv.innerHTML = '尚無活動';
+            return;
+        }
+
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = Math.min(width, height) * 0.35;
+        const angles = [
+            { count: activeCount, color: "#f59e0b" }, // active 黃色
+            { count: doneCount, color: "#10b981" }    // done 綠色
+        ];
+        let startAngle = -Math.PI / 2;
+
+        angles.forEach(slice => {
+            const sliceAngle = (slice.count / totalStatus) * 2 * Math.PI;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+            ctx.closePath();
+            ctx.fillStyle = slice.color;
+            ctx.fill();
+            // 繪製白邊分隔
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            startAngle += sliceAngle;
+        });
+
+        // 內部空白圓心（甜甜圈效果）
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius * 0.5, 0, 2 * Math.PI);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+
+        // 圖例
+        legendDiv.innerHTML = `
+            <span style="display:inline-block;width:12px;height:12px;background:#f59e0b;border-radius:3px;margin-right:4px;"></span> 報名中 ${activeCount} 筆
+            <span style="display:inline-block;width:12px;height:12px;background:#10b981;border-radius:3px;margin-left:12px;margin-right:4px;"></span> 已完成 ${doneCount} 筆
+        `;
     }
     
     // ---------- 7. 表單處理 (含同步) ----------
@@ -848,13 +1049,11 @@
         const newRecord = createRecord(formData);
         if (!newRecord) return;
         
-        // 1. 本地樂觀更新
         saveData(newRecord);
         activityNameInput.value = "";
         activityNoteInput.value = "";
         applyFilterAndRender();
         
-        // 2. 同步到 Google Sheet
         try {
             await syncToSheet({
                 action: "create",
@@ -909,17 +1108,14 @@
             }
         });
         
-        // 搜尋框即時監聽
         searchInput.addEventListener("input", (e) => {
             searchQuery = e.target.value;
             applyFilterAndRender();
         });
         
-        // 嘗試從 Google Sheet 載入資料
         try {
             const sheetRecords = await fetchRecordsFromSheet();
             records = sheetRecords;
-            // 更新 localStorage 以保持一致性
             localStorage.setItem("records", JSON.stringify(records));
             console.log("從 Google Sheet 載入成功，共 " + records.length + " 筆");
         } catch (err) {
@@ -927,7 +1123,6 @@
             loadDataFromLocal();
         }
         
-        // 初始渲染
         applyFilterAndRender();
     }
     
