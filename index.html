@@ -47,6 +47,7 @@
             margin: 0 auto;
         }
 
+        /* 标题区域 */
         .hero {
             text-align: center;
             margin-bottom: 3rem;
@@ -70,6 +71,7 @@
             letter-spacing: 0.3px;
         }
 
+        /* 表单卡片 */
         .form-card {
             background: var(--surface);
             border-radius: var(--radius-lg);
@@ -164,6 +166,7 @@
             box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
         }
 
+        /* 过滤栏 */
         .filter-bar {
             display: flex;
             flex-wrap: wrap;
@@ -267,6 +270,7 @@
             white-space: nowrap;
         }
 
+        /* 可视化区域 */
         .visualization-section {
             background: var(--surface);
             border-radius: var(--radius-lg);
@@ -353,6 +357,7 @@
             width: 100%;
         }
 
+        /* 卡片网格 */
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -525,6 +530,7 @@
             border: 1px dashed var(--border);
         }
 
+        /* 响应式设计 */
         @media (max-width: 768px) {
             body {
                 padding: 1.2rem 1rem;
@@ -594,6 +600,7 @@
         <p>新增報名 | 狀態切換 | 即時篩選 | 搜尋活動 | 排序 | 圖表分析 | Google Sheet 同步</p>
     </div>
 
+    <!-- 新增表單區 -->
     <div class="form-card">
         <div class="form-title">✨ 新增報名資料</div>
         <div class="form-grid">
@@ -621,6 +628,7 @@
         </div>
     </div>
 
+    <!-- 過濾器及統計 + 搜尋 + 排序 -->
     <div class="filter-bar">
         <div class="filter-buttons">
             <button class="filter-btn active" data-filter="all">📋 全部</button>
@@ -644,6 +652,7 @@
         <div class="stats-info" id="statsInfo">共 0 筆報名</div>
     </div>
 
+    <!-- 📊 資料視覺化區塊 -->
     <section id="visualizationSection" class="visualization-section">
         <div class="chart-block bar-chart">
             <div class="chart-title">📂 各類別活動數量</div>
@@ -656,19 +665,32 @@
         </div>
     </section>
 
+    <!-- 卡片展示區 -->
     <div id="cardsContainer" class="cards-grid">
         <div class="empty-message">✨ 目前沒有任何報名，請新增活動報名～</div>
     </div>
 </div>
 
 <script>
+    // --------------------------------------------------------------
+    // Google Apps Script 後端 URL
+    // --------------------------------------------------------------
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzEhIUlRDN-KJvEMEtcHzyRXksnRYd4I0t69nPWhJMfuzEirvaxuBkxPxylaf85yhcv/exec";
 
+    // --------------------------------------------------------------
+    // Data Contract (前端鍵)
+    // --------------------------------------------------------------
+    // id, createdAt, status, activityName, category, note
+
+    // --------------------------------------------------------------
+    // 全域變數
+    // --------------------------------------------------------------
     let records = [];
     let currentFilter = "all";
     let searchQuery = "";
     let currentSort = "default";
 
+    // DOM
     const activityNameInput = document.getElementById("activityName");
     const activityCategorySelect = document.getElementById("activityCategory");
     const activityNoteInput = document.getElementById("activityNote");
@@ -678,10 +700,12 @@
     const searchInput = document.getElementById("searchInput");
     const sortSelect = document.getElementById("sortSelect");
 
+    // ---------- 輔助: 唯一 ID ----------
     function generateId() {
         return Date.now() + "_" + Math.random().toString(36).substring(2, 8);
     }
 
+    // ---------- 1. createRecord ----------
     function createRecord(formData) {
         if (!formData.activityName || formData.activityName.trim() === "") {
             alert("請填寫活動名稱 (必填)");
@@ -697,6 +721,7 @@
         };
     }
 
+    // ---------- 2. 本地儲存 (localStorage) ----------
     function saveData(record) {
         if (!record) return false;
         records.push(record);
@@ -719,6 +744,7 @@
         return records;
     }
 
+    // ---------- 3. Google Sheet 雙向對映 ----------
     function normalizeRecord(raw) {
         const map = {
             "ID": "id",
@@ -753,6 +779,7 @@
         return sheetRecord;
     }
 
+    // ---------- 4. API 呼叫 ----------
     async function fetchRecordsFromSheet() {
         try {
             const res = await fetch(APPS_SCRIPT_URL);
@@ -781,6 +808,7 @@
         }
     }
 
+    // ---------- 5. 更新本地 record ----------
     function updateRecord(id, changes) {
         const index = records.findIndex(record => record.id === id);
         if (index !== -1) {
@@ -801,6 +829,7 @@
         return false;
     }
 
+    // ---------- 6. 渲染 ----------
     function renderList(recordsToShow, customEmptyMessage) {
         cardsContainer.innerHTML = "";
         
@@ -884,27 +913,16 @@
             });
         });
         
-        // ========== 修正刪除按鈕：先同步到 Sheet，成功後才刪除本地 ==========
         document.querySelectorAll(".delete-btn").forEach(btn => {
-            btn.addEventListener("click", async (e) => {
+            btn.addEventListener("click", (e) => {
                 e.stopPropagation();
                 const id = btn.getAttribute("data-id");
-                if (!confirm("確定要刪除此筆報名嗎？")) return;
-                
-                try {
-                    // 1. 先通知 Google Sheet 刪除該筆資料
-                    await syncToSheet({ action: "delete", id: id });
-                    // 2. 同步成功後，再刪除本地資料與 localStorage
+                if (confirm("確定要刪除此筆報名嗎？")) {
                     deleteRecordById(id);
-                    // 3. 重新渲染畫面
                     applyFilterAndRender();
-                } catch (err) {
-                    console.error("刪除同步失敗，未刪除本地資料", err);
-                    alert("刪除失敗：無法連線到雲端，請稍後再試。\n若持續發生，請檢查網路或聯絡管理員。");
                 }
             });
         });
-        // ========== 刪除修正結束 ==========
         
         updateStats();
     }
